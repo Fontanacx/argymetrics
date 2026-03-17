@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   ArgyMetrics Design System
+   ========================================================================= */
+
+:root {
+  /* Surface colors */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f3f5;
+
+  /* Ticker */
+  --ticker-bg: #0f1115;
+  --ticker-text: #d1d5db;
+  --ticker-label: #9ca3af;
+  --ticker-positive: #22c55e;
+  --ticker-negative: #ef4444;
+  --ticker-neutral: #6b7280;
+
+  /* Border */
+  --border-primary: #e9ecef;
+  --border-subtle: #f1f3f5;
+
+  /* Text */
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #868e96;
+  --text-inverted: #ffffff;
+
+  /* Semantic */
+  --color-positive: #2b8a3e;
+  --color-positive-bg: #ebfbee;
+  --color-negative: #c92a2a;
+  --color-negative-bg: #fff5f5;
+  --color-neutral: #868e96;
+  --color-neutral-bg: #f8f9fa;
+
+  /* Accent */
+  --color-accent: #364fc7;
+  --color-accent-light: #edf2ff;
+
+  /* Chart */
+  --chart-positive: #2b8a3e;
+  --chart-negative: #c92a2a;
+  --chart-neutral: #868e96;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+.dark {
+  --bg-primary: #0c0d0f;
+  --bg-secondary: #141518;
+  --bg-card: #1a1b1e;
+  --bg-card-hover: #25262b;
+
+  --ticker-bg: #08090b;
+  --ticker-text: #e5e7eb;
+  --ticker-label: #9ca3af;
+  --ticker-positive: #4ade80;
+  --ticker-negative: #f87171;
+  --ticker-neutral: #6b7280;
+
+  --border-primary: #2c2e33;
+  --border-subtle: #25262b;
+
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #868e96;
+  --text-inverted: #0c0d0f;
+
+  --color-positive: #51cf66;
+  --color-positive-bg: rgba(81, 207, 102, 0.1);
+  --color-negative: #ff6b6b;
+  --color-negative-bg: rgba(255, 107, 107, 0.1);
+  --color-neutral: #868e96;
+  --color-neutral-bg: rgba(134, 142, 150, 0.1);
+
+  --color-accent: #748ffc;
+  --color-accent-light: rgba(116, 143, 252, 0.1);
+
+  --chart-positive: #51cf66;
+  --chart-negative: #ff6b6b;
+  --chart-neutral: #868e96;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-border-primary: var(--border-primary);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-positive: var(--color-positive);
+  --color-negative: var(--color-negative);
+  --color-neutral: var(--color-neutral);
+  --color-accent: var(--color-accent);
+  --font-sans: var(--font-inter);
+}
+
+/* =========================================================================
+   Base styles
+   ========================================================================= */
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================================
+   Utility animations
+   ========================================================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 1.5s ease-in-out infinite;
+}
+
+/* =========================================================================
+   Skeleton loading
+   ========================================================================= */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--border-subtle) 25%,
+    var(--bg-card-hover) 50%,
+    var(--border-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* =========================================================================
+   Footer link styles (Server Component — CSS-only hover)
+   ========================================================================= */
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+  color: var(--text-muted);
+}
+
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+/* =========================================================================
+   Market ticker animation
+   ========================================================================= */
+
+.ticker-track {
+  animation: ticker-scroll 40s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
