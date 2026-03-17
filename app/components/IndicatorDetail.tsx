@@ -128,7 +128,7 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
   const strokeColor = props.kind === "bandas" ? "var(--color-accent)" : getStrokeColor(props.kind, isPositive);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {/* Definition */}
       <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
         {props.definition}
@@ -179,76 +179,80 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
           Sin datos suficientes para este rango.
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id="modal-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={strokeColor} stopOpacity={0.15} />
-                <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--border-subtle)"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="fecha"
-              tickFormatter={formatLabel}
-              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-              minTickGap={40}
-            />
-            <YAxis
-              domain={["auto", "auto"]}
-              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-              width={55}
-              tickFormatter={(v: number) => getYAxisLabel(props.kind, v)}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-primary)",
-                borderRadius: "8px",
-                fontSize: "12px",
-                color: "var(--text-primary)",
-              }}
-              labelFormatter={(v) => formatLabel(v as string)}
-              formatter={(value: ValueType | undefined, name: string | number | undefined) => {
-                if (props.kind === "bandas") {
-                  if (name === "range") return []; // Hide range area from tooltip
-                  const labelName = name === "techo" ? "Techo" : name === "piso" ? "Piso" : "Oficial";
-                  return [formatARS(Number(value ?? 0)), labelName];
-                }
-                return [
-                  formatValue(Number(value ?? 0)),
-                  props.label,
-                ];
-              }}
-            />
-            {props.kind === "bandas" ? (
-              <>
-                <Area dataKey="range" stroke="none" fill="var(--color-accent)" fillOpacity={0.15} isAnimationActive={false} />
-                <Line type="monotone" dataKey="techo" stroke="var(--color-accent)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="piso" stroke="var(--color-accent)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="oficial" stroke="var(--text-primary)" strokeWidth={2} dot={false} isAnimationActive={false} />
-              </>
-            ) : (
-              <Area
-                type={props.kind === "inflacion" ? "stepAfter" : "monotone"}
-                dataKey="value"
-                stroke={strokeColor}
-                strokeWidth={2}
-                fill="url(#modal-gradient)"
-                dot={false}
-                isAnimationActive={false}
+        <div className="flex-1 w-full mt-2 relative min-h-[220px]">
+          <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 16, right: 16, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id="modal-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={strokeColor} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--border-subtle)"
+                vertical={false}
               />
-            )}
-          </AreaChart>
-        </ResponsiveContainer>
+              <XAxis
+                dataKey="fecha"
+                tickFormatter={formatLabel}
+                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                axisLine={false}
+                tickLine={false}
+                minTickGap={40}
+              />
+              <YAxis
+                domain={["auto", "auto"]}
+                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                axisLine={false}
+                tickLine={false}
+                width={55}
+                tickFormatter={(v: number) => getYAxisLabel(props.kind, v)}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-primary)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  color: "var(--text-primary)",
+                }}
+                labelFormatter={(v) => formatLabel(v as string)}
+                formatter={(value: ValueType | undefined, name: string | number | undefined) => {
+                  if (props.kind === "bandas") {
+                    if (name === "range") return []; // Hide range area from tooltip
+                    const labelName = name === "techo" ? "Techo" : name === "piso" ? "Piso" : "Oficial";
+                    return [formatARS(Number(value ?? 0)), labelName];
+                  }
+                  return [
+                    formatValue(Number(value ?? 0)),
+                    props.label,
+                  ];
+                }}
+              />
+              {props.kind === "bandas" ? (
+                <>
+                  <Area dataKey="range" stroke="none" fill="var(--color-accent)" fillOpacity={0.15} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="techo" stroke="var(--color-accent)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="piso" stroke="var(--color-accent)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="oficial" stroke="var(--text-primary)" strokeWidth={2} dot={false} isAnimationActive={false} />
+                </>
+              ) : (
+                <Area
+                  type={props.kind === "inflacion" ? "stepAfter" : "monotone"}
+                  dataKey="value"
+                  stroke={strokeColor}
+                  strokeWidth={2}
+                  fill="url(#modal-gradient)"
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              )}
+            </AreaChart>
+          </ResponsiveContainer>
+          </div>
+        </div>
       )}
 
       {/* Update Time */}

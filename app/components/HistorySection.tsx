@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Maximize2 } from "lucide-react";
+import Modal from "./Modal";
 import {
   AreaChart,
   Area,
@@ -60,6 +62,7 @@ const RANGE_OPTIONS: { value: HistoryRange; label: string }[] = [
 export default function HistorySection({ datasets }: HistorySectionProps) {
   const [range, setRange] = useState<HistoryRange>("30d");
   const [activeTab, setActiveTab] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const active = datasets[activeTab];
   if (!active) return null;
@@ -91,125 +94,161 @@ export default function HistorySection({ datasets }: HistorySectionProps) {
     ? (isPositive ? "var(--color-negative)" : "var(--color-positive)")
     : (isPositive ? "var(--color-positive)" : "var(--color-negative)");
 
+  const handleExpand = () => setModalOpen(true);
+
+  // Extracted chart rendering to reuse across inline and fullscreen modal
+  const renderChart = (isModal = false) => (
+    <AreaChart data={chartData} margin={{ top: isModal ? 16 : 4, right: isModal ? 16 : 4, bottom: 0, left: 0 }}>
+      <defs>
+        <linearGradient id={`gradient-${activeTab}${isModal ? '-modal' : ''}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fillColor} stopOpacity={0.15} />
+          <stop offset="100%" stopColor={fillColor} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="var(--border-subtle)"
+        vertical={false}
+      />
+      <XAxis
+        dataKey="fecha"
+        tickFormatter={(v) => formatShortDate(v)}
+        tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+        axisLine={false}
+        tickLine={false}
+        minTickGap={40}
+      />
+      <YAxis
+        domain={["auto", "auto"]}
+        tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+        axisLine={false}
+        tickLine={false}
+        width={65}
+        tickFormatter={(v: number) =>
+          active.kind === "dollar" ? `$${v.toLocaleString("es-AR")}` : v.toLocaleString("es-AR")
+        }
+      />
+      <Tooltip
+        contentStyle={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-primary)",
+          borderRadius: "8px",
+          fontSize: "12px",
+          color: "var(--text-primary)",
+        }}
+        labelFormatter={(v) => formatShortDate(v as string)}
+        formatter={(value: ValueType | undefined) => [formatValue(Number(value ?? 0)), active.label]}
+      />
+      <Area
+        type="monotone"
+        dataKey="value"
+        stroke={strokeColor}
+        strokeWidth={2}
+        fill={`url(#gradient-${activeTab}${isModal ? '-modal' : ''})`}
+        dot={false}
+        isAnimationActive={false}
+      />
+    </AreaChart>
+  );
+
   return (
-    <div
-      className="rounded-xl border p-4 sm:p-6"
-      style={{
-        background: "var(--bg-card)",
-        borderColor: "var(--border-primary)",
-        boxShadow: "var(--shadow-card)",
-      }}
-    >
-      {/* Tabs + Range selector */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Dataset tabs */}
-        <div className="flex gap-1 overflow-x-auto">
-          {datasets.map((ds, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTab(i)}
-              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-              style={{
-                background: i === activeTab ? "var(--color-accent)" : "transparent",
-                color: i === activeTab ? "var(--text-inverted)" : "var(--text-secondary)",
-              }}
-            >
-              {ds.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Range selector */}
-        <div
-          className="flex gap-1 rounded-lg p-1"
-          style={{ background: "var(--bg-primary)" }}
-        >
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setRange(opt.value)}
-              className="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              style={{
-                background: range === opt.value ? "var(--bg-card)" : "transparent",
-                color: range === opt.value ? "var(--text-primary)" : "var(--text-muted)",
-                boxShadow: range === opt.value ? "var(--shadow-card)" : "none",
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Metric cards */}
-      {metrics && <MetricCards metrics={metrics} formatValue={formatValue} kind={active.kind} />}
-
-      {/* Chart */}
-      <div className="mt-4">
-        {chartData.length < 2 ? (
-          <div
-            className="flex h-64 items-center justify-center text-sm"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Sin datos suficientes para este rango.
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id={`gradient-${activeTab}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={fillColor} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={fillColor} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border-subtle)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="fecha"
-                tickFormatter={(v) => formatShortDate(v)}
-                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-                axisLine={false}
-                tickLine={false}
-                minTickGap={40}
-              />
-              <YAxis
-                domain={["auto", "auto"]}
-                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-                axisLine={false}
-                tickLine={false}
-                width={65}
-                tickFormatter={(v: number) =>
-                  active.kind === "dollar" ? `$${v.toLocaleString("es-AR")}` : v.toLocaleString("es-AR")
-                }
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border-primary)",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  color: "var(--text-primary)",
+    <>
+      <div
+        className="rounded-xl border p-4 sm:p-6"
+        style={{
+          background: "var(--bg-card)",
+          borderColor: "var(--border-primary)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        {/* Tabs + Range selector */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Dataset tabs */}
+          <div className="flex gap-1 overflow-x-auto">
+            {datasets.map((ds, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab(i)}
+                className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+                style={{
+                  background: i === activeTab ? "var(--color-accent)" : "transparent",
+                  color: i === activeTab ? "var(--text-inverted)" : "var(--text-secondary)",
                 }}
-                labelFormatter={(v) => formatShortDate(v as string)}
-                formatter={(value: ValueType | undefined) => [formatValue(Number(value ?? 0)), active.label]}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke={strokeColor}
-                strokeWidth={2}
-                fill={`url(#gradient-${activeTab})`}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+              >
+                {ds.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Range selector */}
+          <div
+            className="flex gap-1 rounded-lg p-1"
+            style={{ background: "var(--bg-primary)" }}
+          >
+            {RANGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setRange(opt.value)}
+                className="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                style={{
+                  background: range === opt.value ? "var(--bg-card)" : "transparent",
+                  color: range === opt.value ? "var(--text-primary)" : "var(--text-muted)",
+                  boxShadow: range === opt.value ? "var(--shadow-card)" : "none",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Metric cards */}
+        {metrics && <MetricCards metrics={metrics} formatValue={formatValue} kind={active.kind} />}
+
+        {/* Chart */}
+        <div className="mt-4 relative group">
+          {chartData.length >= 2 && (
+            <div className="absolute top-0 right-0 z-10 flex gap-2">
+              <button
+                onClick={handleExpand}
+                aria-label="Expand chart"
+                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors shadow-sm"
+                style={{ color: "var(--text-muted)", background: "var(--bg-card)", border: "1px solid var(--border-primary)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+              >
+                <Maximize2 size={14} />
+              </button>
+            </div>
+          )}
+          {chartData.length < 2 ? (
+            <div
+              className="flex h-64 items-center justify-center text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Sin datos suficientes para este rango.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              {renderChart(false)}
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
-    </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={`${active.label} — ${RANGE_OPTIONS.find((o) => o.value === range)?.label ?? range}`}
+        size="fullscreen"
+      >
+        <div style={{ height: '80vh', minHeight: 400, maxHeight: 900 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            {renderChart(true)}
+          </ResponsiveContainer>
+        </div>
+      </Modal>
+    </>
   );
 }
 

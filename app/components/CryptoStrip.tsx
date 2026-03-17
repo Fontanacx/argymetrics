@@ -3,6 +3,7 @@ import type { CryptoRate, CryptoHistoryEntry } from "@/lib/types";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
 import InfoButton from "./InfoButton";
 import IndicatorDetail from "./IndicatorDetail";
+import SparklineChart from "./SparklineChart";
 
 interface CryptoStripProps {
   cryptos?: Record<string, CryptoRate | null>;
@@ -14,6 +15,9 @@ interface CryptoStripProps {
  * Horizontal strip showing Crypto indicators.
  */
 export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoStripProps) {
+  const isBtcTrendPositive = cryptos?.btc ? cryptos.btc.variacion >= 0 : true;
+  const isEthTrendPositive = cryptos?.eth ? cryptos.eth.variacion >= 0 : true;
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {/* Bitcoin */}
@@ -78,6 +82,15 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
                   {cryptos.btc.variacion.toFixed(2)}%
                 </span>
               </div>
+              {btcHistory && btcHistory.length > 0 && (
+                <SparklineChart 
+                  data={btcHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isBtcTrendPositive} 
+                  label="Bitcoin"
+                  formatType="crypto"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -149,6 +162,15 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
                   {cryptos.eth.variacion.toFixed(2)}%
                 </span>
               </div>
+              {ethHistory && ethHistory.length > 0 && (
+                <SparklineChart 
+                  data={ethHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isEthTrendPositive} 
+                  label="Ethereum"
+                  formatType="crypto"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>

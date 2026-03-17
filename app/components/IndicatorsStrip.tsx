@@ -6,6 +6,7 @@ import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
 import type { CommodityQuote } from "@/lib/api/commodities";
 import InfoButton from "./InfoButton";
 import IndicatorDetail from "./IndicatorDetail";
+import SparklineChart from "./SparklineChart";
 
 interface IndicatorsStripProps {
   riesgoPais: RiesgoPais | null;
@@ -32,6 +33,17 @@ export default function IndicatorsStrip({
 }: IndicatorsStripProps) {
   const gold = commodities.find((c) => c.name === "ORO");
   const brent = commodities.find((c) => c.name === "PETROLEO BRENT");
+
+  const isRiesgoTrendPositive = riesgoHistory && riesgoHistory.length >= 2
+    ? riesgoHistory[riesgoHistory.length - 1].valor <= riesgoHistory[riesgoHistory.length - 2].valor
+    : true;
+  
+  const isInflacionTrendPositive = inflacionHistory && inflacionHistory.length >= 2
+    ? inflacionHistory[inflacionHistory.length - 1].valor <= inflacionHistory[inflacionHistory.length - 2].valor
+    : true;
+
+  const isGoldTrendPositive = gold ? gold.changePercent >= 0 : true;
+  const isBrentTrendPositive = brent ? brent.changePercent >= 0 : true;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -79,6 +91,15 @@ export default function IndicatorsStrip({
                 <Clock size={10} />
                 <span>Datos al {formatDateOnly(riesgoPais.fecha)}</span>
               </div>
+              {riesgoHistory && riesgoHistory.length > 0 && (
+                <SparklineChart 
+                  data={riesgoHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isRiesgoTrendPositive} 
+                  label="Riesgo Pais"
+                  formatType="riesgo"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -142,6 +163,15 @@ export default function IndicatorsStrip({
                 <Clock size={10} />
                 <span>{formatMonthYear(inflacion.fecha)}</span>
               </div>
+              {inflacionHistory && inflacionHistory.length > 0 && (
+                <SparklineChart 
+                  data={inflacionHistory.slice(-12)} 
+                  dataKey="valor" 
+                  positive={isInflacionTrendPositive} 
+                  label="Inflacion Mensual (IPC)"
+                  formatType="inflacion"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -212,6 +242,15 @@ export default function IndicatorsStrip({
                   {gold.changePercent.toFixed(2)}%
                 </span>
               </div>
+              {goldHistory && goldHistory.length > 0 && (
+                <SparklineChart 
+                  data={goldHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isGoldTrendPositive} 
+                  label="Oro"
+                  formatType="commodity"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -282,6 +321,15 @@ export default function IndicatorsStrip({
                   {brent.changePercent.toFixed(2)}%
                 </span>
               </div>
+              {brentHistory && brentHistory.length > 0 && (
+                <SparklineChart 
+                  data={brentHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isBrentTrendPositive} 
+                  label="Petróleo Brent"
+                  formatType="commodity"
+                />
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
