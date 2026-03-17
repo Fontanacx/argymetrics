@@ -196,15 +196,19 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
             )}
           </div>
           <div className="relative rounded-lg bg-[#111111] py-4 pl-4 pr-4">
-            <div className="flex items-baseline justify-end gap-1 text-right">
-              <span className="text-2xl font-bold text-white">
+            <div className="flex items-baseline justify-end gap-1 text-right overflow-hidden">
+              <span className="text-2xl font-bold text-white truncate min-w-0" title={!isPesosTop
+                  ? formatARS(convertedAmount).replace("$", "").trim()
+                  : convertedAmount > 0
+                    ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : "0,00"}>
                 {!isPesosTop
                   ? formatARS(convertedAmount).replace("$", "").trim()
                   : convertedAmount > 0
                     ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                     : "0,00"}
               </span>
-              <span className="text-xl font-bold text-white">
+              <span className="text-xl font-bold text-white shrink-0">
                 {!isPesosTop ? "(ARS)" : getFlag(selectedCurrency).includes("🇺🇸") ? "USD" : "EUR"}
               </span>
             </div>

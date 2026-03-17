@@ -22,7 +22,7 @@ export default function InfoButton({ title, children }: InfoButtonProps) {
       <button
         onClick={() => setOpen(true)}
         aria-label={`Mas informacion sobre ${title}`}
-        className="flex h-6 w-6 items-center justify-center rounded-md transition-colors"
+        className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
         style={{ color: "var(--text-muted)" }}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = "var(--bg-card-hover)";
@@ -33,7 +33,7 @@ export default function InfoButton({ title, children }: InfoButtonProps) {
           e.currentTarget.style.color = "var(--text-muted)";
         }}
       >
-        <Info size={14} />
+        <Info size={16} />
       </button>
 
       <Modal open={open} onClose={() => setOpen(false)} title={title}>
