@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { ArrowDownUp, ChevronDown } from "lucide-react";
 import type { DollarWithHistory } from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
+import { CASA_LABELS } from "@/lib/constants";
 
 interface CurrencyConverterProps {
   dollars: DollarWithHistory[];
@@ -42,12 +43,8 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
     if (isNaN(numAmount) || numAmount === 0 || activeRate === 0) return 0;
 
     if (isPesosTop) {
-      // Top is ARS -> Bottom is Foreign
-      // If we are "Buying" foreign (mode=venta), they sell at the VENTA price, so we divide our pesos by Venta.
-      // If we are "Selling" foreign (mode=compra), they buy at the COMPRA price, so we divide our pesos by Compra.
       return numAmount / activeRate;
     } else {
-      // Top is Foreign -> Bottom is ARS
       return numAmount * activeRate;
     }
   }, [amount, isPesosTop, activeRate]);
@@ -57,58 +54,58 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
     ? new Intl.DateTimeFormat("es-AR", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
         timeZone: "America/Argentina/Buenos_Aires",
       }).format(new Date(selectedRateObj.rate.fechaActualizacion))
     : null;
 
   return (
     <div
-      className="mx-auto flex max-w-[500px] flex-col rounded-xl p-6"
+      className="mx-auto flex max-w-[500px] flex-col rounded-xl p-6 border transition-colors"
       style={{
-        background: "#1e1e1e", // Very dark grey, matching screenshot
-        color: "white",
-        boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)",
+        background: "var(--bg-card)",
+        borderColor: "var(--border-primary)",
+        color: "var(--text-primary)",
+        boxShadow: "var(--shadow-card)",
       }}
     >
       {/* Top Header / Tabs */}
       <div className="mb-8 flex items-center justify-between">
-        <div className="flex gap-4 border-b border-gray-700/50 pb-2">
+        <div className="flex gap-4 border-b pb-2" style={{ borderColor: "var(--border-subtle)" }}>
           <button
             onClick={() => setMode("venta")}
-            className={`text-sm font-bold tracking-wide transition-colors ${
-              mode === "venta" ? "text-white" : "text-gray-500 hover:text-gray-300"
-            }`}
+            className="text-sm font-bold tracking-wide transition-colors hover:opacity-80"
             style={
               mode === "venta"
                 ? {
-                    borderBottom: "2px solid #3b82f6", // tailwind blue-500
-                    marginBottom: "-10px", // pull line down to border
+                    color: "var(--text-primary)",
+                    borderBottom: "2px solid var(--color-accent)",
+                    marginBottom: "-10px",
                     paddingBottom: "8px",
                   }
-                : {}
+                : { color: "var(--text-muted)" }
             }
           >
             VENTA
           </button>
           <button
             onClick={() => setMode("compra")}
-            className={`text-sm font-bold tracking-wide transition-colors ${
-              mode === "compra" ? "text-white" : "text-gray-500 hover:text-gray-300"
-            }`}
+            className="text-sm font-bold tracking-wide transition-colors hover:opacity-80"
             style={
               mode === "compra"
                 ? {
-                    borderBottom: "2px solid #3b82f6",
+                    color: "var(--text-primary)",
+                    borderBottom: "2px solid var(--color-accent)",
                     marginBottom: "-10px",
                     paddingBottom: "8px",
                   }
-                : {}
+                : { color: "var(--text-muted)" }
             }
           >
             COMPRA
           </button>
         </div>
-        <div className="text-xs text-gray-500">
+        <div className="text-xs" style={{ color: "var(--text-muted)" }}>
           {updatedAt ? `Actualizado a las ${updatedAt}` : "Actualizando..."}
         </div>
       </div>
@@ -129,19 +126,20 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                   value={selectedCurrency}
                   onChange={(e) => setSelectedCurrency(e.target.value)}
                   className="appearance-none bg-transparent pr-4 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   {dollars.map((d) => (
-                    <option key={`src-${d.rate.casa}`} value={d.rate.casa} className="text-black">
-                      {d.rate.nombre}
+                    <option key={`src-${d.rate.casa}`} value={d.rate.casa} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
+                      {CASA_LABELS[d.rate.casa] || d.rate.nombre}
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-0 text-gray-400" />
+                <ChevronDown size={14} className="pointer-events-none absolute right-0" style={{ color: "var(--text-muted)" }} />
               </div>
             )}
           </div>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-600">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold" style={{ color: "var(--text-muted)" }}>
               {isPesosTop ? "$" : getFlag(selectedCurrency).includes("🇺🇸") ? "US$" : "€"}
             </span>
             <input
@@ -150,7 +148,12 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
               placeholder="0"
               value={amount}
               onChange={handleAmountChange}
-              className="w-full rounded-lg bg-[#111111] py-4 pl-14 pr-4 text-right text-2xl font-bold text-gray-500 outline-none transition-colors focus:bg-[#1a1a1a] focus:text-white"
+              className="w-full rounded-lg py-4 pl-14 pr-4 text-right text-2xl font-bold outline-none transition-colors"
+              style={{
+                background: "var(--bg-primary)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-subtle)"
+              }}
             />
           </div>
         </div>
@@ -162,7 +165,8 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
               setIsPesosTop(!isPesosTop);
               setAmount(convertedAmount > 0 ? convertedAmount.toFixed(2).replace(".00", "") : "");
             }}
-            className="flex items-center justify-center text-blue-500 hover:text-blue-400"
+            className="flex items-center justify-center transition-colors hover:opacity-80"
+            style={{ color: "var(--color-accent)" }}
             aria-label="Invertir monedas"
           >
             <ArrowDownUp size={20} />
@@ -184,20 +188,21 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                   value={selectedCurrency}
                   onChange={(e) => setSelectedCurrency(e.target.value)}
                   className="appearance-none bg-transparent pr-4 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   {dollars.map((d) => (
-                    <option key={`tgt-${d.rate.casa}`} value={d.rate.casa} className="text-black">
-                      {d.rate.nombre}
+                    <option key={`tgt-${d.rate.casa}`} value={d.rate.casa} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
+                       {CASA_LABELS[d.rate.casa] || d.rate.nombre}
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-0 text-gray-400" />
+                <ChevronDown size={14} className="pointer-events-none absolute right-0" style={{ color: "var(--text-muted)" }} />
               </div>
             )}
           </div>
-          <div className="relative rounded-lg bg-[#111111] py-4 pl-4 pr-4">
+          <div className="relative rounded-lg py-4 pl-4 pr-4 border" style={{ background: "var(--bg-primary)", borderColor: "var(--border-subtle)" }}>
             <div className="flex items-baseline justify-end gap-1 text-right overflow-hidden">
-              <span className="text-2xl font-bold text-white truncate min-w-0" title={!isPesosTop
+              <span className="text-2xl font-bold truncate min-w-0" style={{ color: "var(--text-primary)" }} title={!isPesosTop
                   ? formatARS(convertedAmount).replace("$", "").trim()
                   : convertedAmount > 0
                     ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -208,12 +213,12 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                     ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                     : "0,00"}
               </span>
-              <span className="text-xl font-bold text-white shrink-0">
+              <span className="text-xl font-bold shrink-0" style={{ color: "var(--text-primary)" }}>
                 {!isPesosTop ? "(ARS)" : getFlag(selectedCurrency).includes("🇺🇸") ? "USD" : "EUR"}
               </span>
             </div>
             {/* Precio Base Helper */}
-            <div className="mt-1 text-right text-xs font-medium text-gray-400">
+            <div className="mt-1 text-right text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
               precio: {formatARS(activeRate)}
             </div>
           </div>
@@ -223,7 +228,12 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
         <div className="mt-4 flex justify-center">
           <button
             onClick={() => window.location.reload()}
-            className="rounded-lg bg-[rgba(37,99,235,0.1)] px-8 py-3 text-sm font-bold text-blue-500 transition-colors hover:bg-[rgba(37,99,235,0.15)] focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="rounded-lg px-8 py-3 text-sm font-bold transition-colors hover:opacity-80 focus:ring-2 focus:outline-none"
+            style={{ 
+              background: "var(--color-accent-light)", 
+              color: "var(--color-accent)",
+              border: "1px solid var(--color-accent-light)" 
+            }}
           >
             Actualizar precios
           </button>

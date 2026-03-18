@@ -197,11 +197,13 @@ body {
   animation: ticker-scroll 40s linear infinite;
 }
 
-.ticker-track:hover {
-  animation-play-state: paused;
-}
-
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+@media (hover: hover) {
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
 }

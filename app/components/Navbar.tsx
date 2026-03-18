@@ -36,6 +36,13 @@ export default function Navbar() {
         {/* Right side */}
         <div className="flex items-center gap-4">
           <a
+            href="/insights"
+            className="text-sm font-medium transition-colors hover:text-[var(--color-accent)]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Resumen
+          </a>
+          <a
             href="/conversor"
             className="text-sm font-medium transition-colors hover:text-[var(--color-accent)]"
             style={{ color: "var(--text-muted)" }}
