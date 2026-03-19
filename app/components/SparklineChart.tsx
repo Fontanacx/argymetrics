@@ -16,8 +16,9 @@ interface SparklineChartProps {
   label?: string;
   /** Key to extract the value from data. Defaults to 'venta'. */
   dataKey?: string;
-  /** Format type for tooltips and axes. Defaults to 'dollar' */
   formatType?: "dollar" | "crypto" | "riesgo" | "inflacion" | "commodity";
+  /** Optional brand color to override standard positive/negative line color */
+  strokeColor?: string;
 }
 
 /**
@@ -26,10 +27,11 @@ interface SparklineChartProps {
  */
 export default function SparklineChart({ 
   data, 
-  positive, 
+  positive,
   label = "Evolución",
   dataKey = "venta",
-  formatType = "dollar"
+  formatType = "dollar",
+  strokeColor
 }: SparklineChartProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -51,9 +53,9 @@ export default function SparklineChart({
     );
   }
 
-  const strokeColor = positive
+  const finalStrokeColor = strokeColor || (positive
     ? "var(--chart-positive)"
-    : "var(--chart-negative)";
+    : "var(--chart-negative)");
 
   return (
     <>
@@ -68,7 +70,7 @@ export default function SparklineChart({
             <Line
               type="monotone"
               dataKey={dataKey}
-              stroke={strokeColor}
+              stroke={finalStrokeColor}
               strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
@@ -121,9 +123,9 @@ export default function SparklineChart({
               <Line
                 type="monotone"
                 dataKey={dataKey}
-                stroke={strokeColor}
+                stroke={finalStrokeColor}
                 strokeWidth={2}
-                dot={{ r: 3, fill: strokeColor }}
+                dot={{ r: 3, fill: finalStrokeColor }}
                 activeDot={{ r: 5 }}
                 isAnimationActive={false}
               />

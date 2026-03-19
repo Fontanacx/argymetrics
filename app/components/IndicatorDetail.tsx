@@ -35,6 +35,7 @@ interface DollarDetailProps {
   label: string;
   definition: string;
   spread?: { blueVenta: number; oficialVenta: number };
+  currentRate?: { compra: number; venta: number };
 }
 
 interface RiesgoDetailProps {
@@ -126,6 +127,7 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
   // Color logic
   const isPositive = metrics ? metrics.changePercent >= 0 : true;
   const strokeColor = props.kind === "bandas" ? "var(--color-accent)" : getStrokeColor(props.kind, isPositive);
+  const marketStatus = getMarketStatus(props.kind);
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -133,6 +135,37 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
       <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
         {props.definition}
       </p>
+
+      {/* Current Value, Spread & Market Status */}
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}>
+        <div>
+          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Valor Actual</p>
+          <p className="text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+            {props.kind === "dollar" && props.currentRate 
+              ? formatARS(props.currentRate.venta) 
+              : props.kind === "bandas" && props.cotizacionActual 
+                ? formatARS(props.cotizacionActual) 
+                : formatValue(values[values.length - 1] ?? 0)}
+          </p>
+        </div>
+        
+        {props.kind === "dollar" && props.currentRate && (
+          <div className="text-center px-2">
+             <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Spread</p>
+             <p className="text-sm font-semibold tabular-nums mt-0.5" style={{ color: "var(--text-primary)" }}>
+               {formatARS(props.currentRate.venta - props.currentRate.compra)}
+             </p>
+          </div>
+        )}
+
+        <div className="text-right">
+          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Mercado</p>
+          <div className="flex items-center justify-end gap-1.5 mt-0.5">
+            <div className="w-2 h-2 rounded-full" style={{ background: marketStatus.color }} />
+            <span className="text-sm font-semibold tracking-tight" style={{ color: marketStatus.color }}>{marketStatus.text}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Spread indicator (dollar only) */}
       {props.kind === "dollar" && props.spread && <SpreadIndicator spread={props.spread} />}
@@ -320,6 +353,18 @@ function getStrokeColor(kind: string, isPositive: boolean): string {
     return "var(--color-accent)"; // Use neutral accent color for commodities and crypto since they aren't strictly good/bad
   }
   return isPositive ? "var(--color-positive)" : "var(--color-negative)";
+}
+
+function getMarketStatus(kind: string): { text: string; color: string } {
+  if (kind === "crypto") return { text: "Operando 24/7", color: "var(--color-positive)" };
+  const now = new Date();
+  const day = now.getDay();
+  const hour = now.getHours();
+  // Monday = 1, Friday = 5. Hours: 10 to 16:59
+  if (day >= 1 && day <= 5 && hour >= 10 && hour < 17) {
+    return { text: "Operando", color: "var(--color-positive)" };
+  }
+  return { text: "Cerrado", color: "var(--color-negative)" };
 }
 
 // ---------------------------------------------------------------------------

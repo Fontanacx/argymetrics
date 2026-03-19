@@ -55,6 +55,15 @@ export const CASA_LABELS: Record<DollarCasa, string> = {
   buenbit: "Buenbit",
 };
 
+/** Brand colors for Crypto/Fintech Virtual Wallets */
+export const WALLET_COLORS: Record<string, string> = {
+  astropay: "#d61a21",
+  cocos: "#00a2ff",
+  lemoncash: "#00e550",
+  belo: "#00d789",
+  buenbit: "#f178b6",
+};
+
 // ---------------------------------------------------------------------------
 // Bandas cambiarias
 //

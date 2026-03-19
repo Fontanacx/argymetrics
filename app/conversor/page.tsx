@@ -1,4 +1,6 @@
 import { fetchDollarsWithHistory } from "@/lib/api/historical";
+import { fetchWalletDollars } from "@/lib/api/wallets";
+import type { DollarRate } from "@/lib/types";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CurrencyConverter from "../components/CurrencyConverter";
@@ -11,7 +13,15 @@ export const metadata = {
 };
 
 export default async function ConversorPage() {
-  const dollars = await fetchDollarsWithHistory();
+  const [dollars, walletDollars] = await Promise.all([
+    fetchDollarsWithHistory(),
+    fetchWalletDollars(),
+  ]);
+
+  const combinedDollars = [
+    ...dollars,
+    ...walletDollars,
+  ];
 
   return (
     <div className="flex min-h-screen flex-col" style={{ background: "var(--bg-primary)" }}>
@@ -22,7 +32,7 @@ export default async function ConversorPage() {
           <SectionHeader title="Conversor de Divisas" icon={ArrowLeftRight} />
         </div>
         
-        <CurrencyConverter dollars={dollars} />
+        <CurrencyConverter dollars={combinedDollars} />
       </main>
 
       <Footer />

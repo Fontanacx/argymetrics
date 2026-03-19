@@ -1,4 +1,4 @@
-import { AlertTriangle, Percent, Clock, Coins, Droplet, TrendingUp, TrendingDown } from "lucide-react";
+import { AlertTriangle, Percent, Clock, Coins, Droplet, TrendingUp, TrendingDown, Flame } from "lucide-react";
 import type { RiesgoPais, InflacionMensual, RiesgoPaisHistoryEntry, CryptoRate, CryptoHistoryEntry } from "@/lib/types";
 import { formatPoints, formatPercent } from "@/lib/formatters/currency";
 import { formatDateOnly, formatMonthYear } from "@/lib/formatters/date";
@@ -16,6 +16,7 @@ interface IndicatorsStripProps {
   commodities?: CommodityQuote[];
   goldHistory?: { fecha: string; valor: number }[];
   brentHistory?: { fecha: string; valor: number }[];
+  gasHistory?: { fecha: string; valor: number }[];
 }
 
 /**
@@ -30,9 +31,11 @@ export default function IndicatorsStrip({
   commodities = [],
   goldHistory,
   brentHistory,
+  gasHistory,
 }: IndicatorsStripProps) {
   const gold = commodities.find((c) => c.name === "ORO");
   const brent = commodities.find((c) => c.name === "PETROLEO BRENT");
+  const gas = commodities.find((c) => c.name === "GAS NATURAL");
 
   const isRiesgoTrendPositive = riesgoHistory && riesgoHistory.length >= 2
     ? riesgoHistory[riesgoHistory.length - 1].valor <= riesgoHistory[riesgoHistory.length - 2].valor
@@ -44,6 +47,7 @@ export default function IndicatorsStrip({
 
   const isGoldTrendPositive = gold ? gold.changePercent >= 0 : true;
   const isBrentTrendPositive = brent ? brent.changePercent >= 0 : true;
+  const isGasTrendPositive = gas ? gas.changePercent >= 0 : true;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -327,6 +331,84 @@ export default function IndicatorsStrip({
                   dataKey="valor" 
                   positive={isBrentTrendPositive} 
                   label="Petróleo Brent"
+                  formatType="commodity"
+                />
+              )}
+            </>
+          ) : (
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Sin datos disponibles
+            </p>
+          )}
+        </div>
+      </div>
+      {/* Gas Natural */}
+      <div
+        className="flex items-center gap-4 rounded-xl border p-4"
+        style={{
+          background: "var(--bg-card)",
+          borderColor: "var(--border-primary)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: "rgba(249, 115, 22, 0.1)", color: "rgb(249, 115, 22)" }}
+        >
+          <Flame size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <p className="text-xs font-medium uppercase" style={{ color: "var(--text-muted)" }}>
+              Gas Natural
+            </p>
+            {gasHistory && gasHistory.length > 0 && (
+              <InfoButton title="Gas Natural">
+                <IndicatorDetail
+                  kind="commodity"
+                  data={gasHistory}
+                  label="Gas Natural"
+                  definition={INDICATOR_DEFINITIONS.gas}
+                  updateTime={gas?.fecha}
+                />
+              </InfoButton>
+            )}
+          </div>
+          {gas ? (
+            <>
+              <p
+                className="text-xl font-bold tabular-nums"
+                style={{ color: "var(--text-primary)" }}
+              >
+                US$ {gas.price.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <div className="flex items-center gap-1 text-xs">
+                {gas.changePercent > 0 ? (
+                  <TrendingUp size={12} style={{ color: "var(--color-positive)" }} />
+                ) : gas.changePercent < 0 ? (
+                  <TrendingDown size={12} style={{ color: "var(--color-negative)" }} />
+                ) : null}
+                <span
+                  style={{
+                    color:
+                      gas.changePercent > 0
+                        ? "var(--color-positive)"
+                        : gas.changePercent < 0
+                          ? "var(--color-negative)"
+                          : "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {gas.changePercent > 0 ? "+" : ""}
+                  {gas.changePercent.toFixed(2)}%
+                </span>
+              </div>
+              {gasHistory && gasHistory.length > 0 && (
+                <SparklineChart 
+                  data={gasHistory.slice(-7)} 
+                  dataKey="valor" 
+                  positive={isGasTrendPositive} 
+                  label="Gas Natural"
                   formatType="commodity"
                 />
               )}

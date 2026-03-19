@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { ArrowDownUp, ChevronDown } from "lucide-react";
 import type { DollarWithHistory } from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
@@ -8,6 +8,86 @@ import { CASA_LABELS } from "@/lib/constants";
 
 interface CurrencyConverterProps {
   dollars: DollarWithHistory[];
+}
+
+interface CustomSelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: { value: string; label: string; flag: string }[];
+}
+
+function CustomSelect({ value, onChange, options }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 pr-2 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0 transition-opacity hover:opacity-80"
+        style={{ color: "var(--text-primary)" }}
+        type="button"
+      >
+        <span className="text-xl leading-none">{selectedOption?.flag || "🇺🇸"}</span>
+        <span>{selectedOption?.label || "Select"}</span>
+        <ChevronDown 
+          size={14} 
+          className={`transition-transform duration-200 mt-[1px] ${isOpen ? "rotate-180" : ""}`} 
+          style={{ color: "var(--text-muted)" }} 
+        />
+      </button>
+
+      {isOpen && (
+        <div 
+          className="absolute left-0 top-full z-50 mt-3 max-h-64 min-w-[220px] overflow-y-auto rounded-xl border p-1 shadow-2xl"
+          style={{
+            background: "var(--bg-card)",
+            borderColor: "var(--border-subtle)",
+            boxShadow: "0px 10px 30px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
+                style={{
+                  background: value === opt.value ? "var(--bg-primary)" : "transparent",
+                  color: value === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
+                }}
+                onMouseEnter={(e) => {
+                  if (value !== opt.value) e.currentTarget.style.background = "var(--border-subtle)";
+                }}
+                onMouseLeave={(e) => {
+                  if (value !== opt.value) e.currentTarget.style.background = "transparent";
+                }}
+                type="button"
+              >
+                <span className="text-xl leading-none">{opt.flag}</span>
+                <span className="font-semibold">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
@@ -36,6 +116,14 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
     if (casa.includes("euro")) return "🇪🇺";
     return "🇺🇸";
   };
+
+  const selectOptions = useMemo(() => {
+    return dollars.map((d) => ({
+      value: d.rate.casa,
+      label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
+      flag: getFlag(d.rate.casa),
+    }));
+  }, [dollars]);
 
   // Compute conversion
   const convertedAmount = useMemo(() => {
@@ -120,22 +208,11 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                 <span className="text-sm font-bold tracking-wide">ARS</span>
               </>
             ) : (
-              <div className="relative flex items-center gap-2">
-                <span className="text-lg leading-none">{getFlag(selectedCurrency)}</span>
-                <select
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="appearance-none bg-transparent pr-4 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {dollars.map((d) => (
-                    <option key={`src-${d.rate.casa}`} value={d.rate.casa} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                      {CASA_LABELS[d.rate.casa] || d.rate.nombre}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-0" style={{ color: "var(--text-muted)" }} />
-              </div>
+              <CustomSelect
+                value={selectedCurrency}
+                onChange={setSelectedCurrency}
+                options={selectOptions}
+              />
             )}
           </div>
           <div className="relative">
@@ -182,22 +259,11 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                 <span className="text-sm font-bold tracking-wide">ARS</span>
               </>
             ) : (
-              <div className="relative flex items-center gap-2">
-                <span className="text-lg leading-none">{getFlag(selectedCurrency)}</span>
-                <select
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="appearance-none bg-transparent pr-4 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {dollars.map((d) => (
-                    <option key={`tgt-${d.rate.casa}`} value={d.rate.casa} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                       {CASA_LABELS[d.rate.casa] || d.rate.nombre}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-0" style={{ color: "var(--text-muted)" }} />
-              </div>
+              <CustomSelect
+                value={selectedCurrency}
+                onChange={setSelectedCurrency}
+                options={selectOptions}
+              />
             )}
           </div>
           <div className="relative rounded-lg py-4 pl-4 pr-4 border" style={{ background: "var(--bg-primary)", borderColor: "var(--border-subtle)" }}>

@@ -60,14 +60,16 @@ async function fetchYahooQuote(symbol: string, name: string): Promise<CommodityQ
  * Fetches Gold (GC=F) and Brent Crude (BZ=F) quotes.
  */
 export async function fetchCommodities(): Promise<CommodityQuote[]> {
-  const [gold, brent] = await Promise.all([
+  const [gold, brent, gas] = await Promise.all([
     fetchYahooQuote("GC=F", "ORO"),
     fetchYahooQuote("BZ=F", "PETROLEO BRENT"),
+    fetchYahooQuote("NG=F", "GAS NATURAL"),
   ]);
 
   const results: CommodityQuote[] = [];
   if (gold) results.push(gold);
   if (brent) results.push(brent);
+  if (gas) results.push(gas);
 
   return results;
 }

@@ -40,6 +40,7 @@ export default async function Home() {
     criptoHistoryFull,
     goldHistory,
     brentHistory,
+    gasHistory,
     bandasHistory,
     cryptos,
     btcHistory,
@@ -63,6 +64,7 @@ export default async function Home() {
     fetchFullDollarHistory("cripto"),
     fetchCommodityHistory("GC=F"), // Oro
     fetchCommodityHistory("BZ=F"), // Petróleo
+    fetchCommodityHistory("NG=F"), // Gas
     fetchBandasHistory(),
     fetchCryptos(),
     fetchCryptoHistory("BTC-USD"),
@@ -211,6 +213,7 @@ export default async function Home() {
                 commodities={commodities}
                 goldHistory={goldHistory}
                 brentHistory={brentHistory}
+                gasHistory={gasHistory}
               />
             </div>
             <div>

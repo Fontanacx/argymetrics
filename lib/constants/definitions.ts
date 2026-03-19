@@ -91,4 +91,8 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
   euroblue:
     "El Euro Blue es la cotización informal del euro en Argentina, intercambiado fuera del mercado bancario regulado. " +
     "Al igual que el dólar blue, su valor se rige estrictamente por la oferta y la demanda del mercado paralelo.",
+
+  gas:
+    "El Gas Natural (Henry Hub Futures) es la principal referencia del mercado de gas en Norteamérica. " +
+    "Su precio es un indicador clave de los costos energéticos globales, influyendo fuertemente en la industria y la economía a nivel internacional.",
 };
