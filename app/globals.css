@@ -207,3 +207,78 @@ body {
     animation-play-state: paused;
   }
 }
+
+/* =========================================================================
+   Daily Insights — Bento grid & tab styles
+   ========================================================================= */
+
+.insights-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .insights-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .insights-bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.insights-card-featured {
+  grid-column: span 1;
+}
+
+@media (min-width: 640px) {
+  .insights-card-featured {
+    grid-column: span 2;
+  }
+}
+
+.insights-card {
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .insights-card:hover {
+    box-shadow: var(--shadow-card-hover) !important;
+    transform: translateY(-1px);
+  }
+}
+
+.insights-tab-bar {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.insights-tab {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.insights-tab-active {
+  font-weight: 600;
+}
+
+.insights-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.insights-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}

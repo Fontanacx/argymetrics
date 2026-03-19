@@ -13,6 +13,7 @@ import BandasIndicator from "./components/BandasIndicator";
 import MarketTicker from "./components/MarketTicker";
 import CryptoStrip from "./components/CryptoStrip";
 
+
 export const revalidate = 0;
 
 /**
