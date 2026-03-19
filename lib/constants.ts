@@ -6,7 +6,8 @@ import type { DollarCasa } from "./types";
 
 export const DOLARAPI_BASE = "https://dolarapi.com";
 export const ARGENTINADATOS_BASE = "https://api.argentinadatos.com";
-export const CRIPTOYA_RP = "https://criptoya.com/api/riesgo-pais";
+export const CRIPTOYA_BASE = "https://criptoya.com/api";
+export const CRIPTOYA_RP = `${CRIPTOYA_BASE}/riesgo-pais`;
 
 // ---------------------------------------------------------------------------
 // Revalidation intervals (seconds) for server-side fetch caching
@@ -47,6 +48,11 @@ export const CASA_LABELS: Record<DollarCasa, string> = {
   euro: "Euro Oficial",
   euroblue: "Euro Blue",
   eurotarjeta: "Euro Tarjeta",
+  astropay: "AstroPay",
+  cocos: "Cocos Crypto",
+  lemoncash: "Lemon Cash",
+  belo: "Belo",
+  buenbit: "Buenbit",
 };
 
 // ---------------------------------------------------------------------------

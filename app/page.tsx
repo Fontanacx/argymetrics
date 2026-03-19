@@ -1,9 +1,10 @@
-import { DollarSign, Activity, Clock, Coins } from "lucide-react";
+import { DollarSign, Activity, Bitcoin, Clock, Wallet, Coins } from "lucide-react";
 import { fetchDollarsWithHistory, fetchFullDollarHistory, fetchRiesgoPaisHistory } from "@/lib/api/historical";
 import { fetchAllDollars } from "@/lib/api/dollars";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory, getBandas, fetchBandasHistory } from "@/lib/api/indicators";
 import { fetchCommodities, fetchCommodityHistory } from "@/lib/api/commodities";
 import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
+import { fetchWalletDollars } from "@/lib/api/wallets";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SectionHeader from "./components/SectionHeader";
@@ -27,6 +28,8 @@ export default async function Home() {
     inflacion,
     blueHistory,
     oficialHistory,
+    bolsaHistory,
+    cclHistory,
     riesgoHistory,
     inflacionHistory,
     allRates,
@@ -34,18 +37,22 @@ export default async function Home() {
     euroHistory,
     euroBlueHistory,
     euroTarjetaHistory,
+    criptoHistoryFull,
     goldHistory,
     brentHistory,
     bandasHistory,
     cryptos,
     btcHistory,
     ethHistory,
+    walletDollars,
   ] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchRiesgoPais(),
     fetchInflacion(),
     fetchFullDollarHistory("blue"),
     fetchFullDollarHistory("oficial"),
+    fetchFullDollarHistory("bolsa"),
+    fetchFullDollarHistory("contadoconliqui"),
     fetchRiesgoPaisHistory(),
     fetchInflacionHistory(),
     fetchAllDollars(),
@@ -53,12 +60,14 @@ export default async function Home() {
     fetchFullDollarHistory("euro"),
     fetchFullDollarHistory("euroblue"),
     fetchFullDollarHistory("eurotarjeta"),
+    fetchFullDollarHistory("cripto"),
     fetchCommodityHistory("GC=F"), // Oro
     fetchCommodityHistory("BZ=F"), // Petróleo
     fetchBandasHistory(),
     fetchCryptos(),
     fetchCryptoHistory("BTC-USD"),
     fetchCryptoHistory("ETH-USD"),
+    fetchWalletDollars(),
   ]);
 
   // ---------------------------------------------------------------------------
@@ -92,9 +101,12 @@ export default async function Home() {
   const histories: Record<string, typeof blueHistory> = {
     blue: blueHistory,
     oficial: oficialHistory,
+    bolsa: bolsaHistory,
+    contadoconliqui: cclHistory,
     euro: euroHistory,
     euroblue: euroBlueHistory,
     eurotarjeta: euroTarjetaHistory,
+    cripto: criptoHistoryFull,
   };
 
   // Compute the most recent update timestamp from dollar data
@@ -111,6 +123,18 @@ export default async function Home() {
     
     return currentDate > latestDate ? ts : latest;
   }, "");
+
+  // Inject generic 'cripto' history to wallet dollars for sparklines and modals
+  const criptoDollar = dollars.find((d) => d.rate.casa === "cripto");
+  const criptoHistory = criptoDollar?.history || [];
+  const criptoVariacion = criptoDollar?.variacion ?? null;
+  const fullCriptoHistory = histories["cripto"] || [];
+
+  const enrichedWalletDollars = walletDollars?.map((w) => ({
+    ...w,
+    history: criptoHistory,
+    variacion: criptoVariacion,
+  })) || [];
 
   // Format update time (HH:mm)
   const updateTime = latestUpdate
@@ -152,6 +176,25 @@ export default async function Home() {
           </div>
           <DollarGrid dollars={dollars} histories={histories} />
         </section>
+
+        {/* Billeteras Virtuales section */}
+        {enrichedWalletDollars.length > 0 && (
+          <section className="mb-8">
+            <div className="mb-4">
+              <SectionHeader title="Dólares Billeteras Virtuales" icon={Wallet} />
+            </div>
+            <DollarGrid
+              dollars={enrichedWalletDollars}
+              histories={{
+                astropay: fullCriptoHistory,
+                cocos: fullCriptoHistory,
+                lemoncash: fullCriptoHistory,
+                belo: fullCriptoHistory,
+                buenbit: fullCriptoHistory,
+              }}
+            />
+          </section>
+        )}
 
         {/* Indicadores section */}
         <section className="mb-8">

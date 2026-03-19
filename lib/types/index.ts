@@ -11,7 +11,6 @@ export interface DollarRate {
   fechaActualizacion: string;
 }
 
-/** Known "casa" identifiers returned by DolarAPI */
 export type DollarCasa =
   | "oficial"
   | "blue"
@@ -22,7 +21,12 @@ export type DollarCasa =
   | "tarjeta"
   | "euro"
   | "euroblue"
-  | "eurotarjeta";
+  | "eurotarjeta"
+  | "astropay"
+  | "cocos"
+  | "lemoncash"
+  | "belo"
+  | "buenbit";
 
 // ---------------------------------------------------------------------------
 // ArgentinaDatos historical response (GET /v1/cotizaciones/dolares/{casa})

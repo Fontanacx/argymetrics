@@ -30,7 +30,7 @@ export interface InsightCard {
   sparklineFormatType?: "dollar" | "crypto" | "riesgo" | "inflacion" | "commodity";
 }
 
-export type InsightCategory = "dollars" | "crypto" | "indicators";
+export type InsightCategory = "dollars" | "crypto" | "indicators" | "wallets";
 
 // ---------------------------------------------------------------------------
 // Dollar Insights
@@ -328,11 +328,7 @@ export function computeIndicatorInsights(
       id: "indicator-inflacion",
       label: "Inflación Mensual (IPC)",
       value: formatPercent(inflacion.valor),
-      subtitle: isLow
-        ? "Inflación baja · tendencia favorable"
-        : isModerate
-          ? "Inflación moderada · presión sobre precios"
-          : "Inflación alta · impacto significativo en poder adquisitivo",
+      subtitle: "Último dato oficial publicado",
       changePercent: inflacion.valor,
       sentiment: isLow ? "positive" : isModerate ? "neutral" : "negative",
       size: "normal",
@@ -382,6 +378,77 @@ export function computeIndicatorInsights(
   }
 
   return cards.length > 0 ? cards : [buildFallbackCard("indicators-empty", "Indicadores", "Sin datos disponibles")];
+}
+
+// ---------------------------------------------------------------------------
+// Wallet Insights
+// ---------------------------------------------------------------------------
+
+/**
+ * Computes insight cards specifically for virtual wallets (Crypto Dollars).
+ */
+export function computeWalletInsights(wallets: DollarWithHistory[]): InsightCard[] {
+  if (wallets.length === 0) return [buildFallbackCard("wallets-empty", "Billeteras", "Sin datos disponibles")];
+
+  const cards: InsightCard[] = [];
+
+  // Cheapest to buy
+  const withBuy = wallets.filter((w) => w.rate.compra > 0);
+  if (withBuy.length > 0) {
+    const cheapest = [...withBuy].sort((a, b) => a.rate.compra - b.rate.compra)[0];
+    cards.push({
+      id: "wallet-cheapest",
+      label: "Más barato (Cambiar ARS a USDT)",
+      value: CASA_LABELS[cheapest.rate.casa] ?? cheapest.rate.nombre,
+      subtitle: `Cotización: ${formatARS(cheapest.rate.compra)}`,
+      sentiment: "positive",
+      size: "normal",
+      sparklineData: cheapest.history?.slice(-7) as unknown[],
+      sparklineDataKey: "venta",
+      sparklineFormatType: "dollar",
+    });
+  }
+
+  // Most Expensive to Sell
+  const withSell = wallets.filter((w) => w.rate.venta > 0);
+  if (withSell.length > 0) {
+    const expensive = [...withSell].sort((a, b) => b.rate.venta - a.rate.venta)[0];
+    cards.push({
+      id: "wallet-expensive",
+      label: "Más alto (Cambiar USDT a ARS)",
+      value: CASA_LABELS[expensive.rate.casa] ?? expensive.rate.nombre,
+      subtitle: `Cotización: ${formatARS(expensive.rate.venta)}`,
+      sentiment: "positive",
+      size: "normal",
+      sparklineData: expensive.history?.slice(-7) as unknown[],
+      sparklineDataKey: "venta",
+      sparklineFormatType: "dollar",
+    });
+  }
+
+  // Lowest Spread
+  const withSpread = wallets.filter((w) => w.rate.compra > 0 && w.rate.venta > 0);
+  if (withSpread.length > 0) {
+    const lowestSpread = [...withSpread].sort(
+      (a, b) => (a.rate.compra - a.rate.venta) - (b.rate.compra - b.rate.venta)
+    )[0];
+    const spreadVal = lowestSpread.rate.compra - lowestSpread.rate.venta;
+    const spreadPct = (spreadVal / lowestSpread.rate.venta) * 100;
+    
+    cards.push({
+      id: "wallet-spread",
+      label: "Menor Margen (Spread)",
+      value: CASA_LABELS[lowestSpread.rate.casa] ?? lowestSpread.rate.nombre,
+      subtitle: `Dif. Compra-Venta: ${formatARS(Math.abs(spreadVal))} (${spreadPct.toFixed(1)}%)`,
+      sentiment: "neutral",
+      size: "normal",
+      sparklineData: lowestSpread.history?.slice(-7) as unknown[],
+      sparklineDataKey: "venta",
+      sparklineFormatType: "dollar",
+    });
+  }
+
+  return cards.length > 0 ? cards : [buildFallbackCard("wallets-empty", "Billeteras", "Sin cotizaciones actuales")];
 }
 
 // ---------------------------------------------------------------------------
@@ -447,22 +514,23 @@ export function generateNarrative(category: InsightCategory, cards: InsightCard[
  * Selects the single most notable insight across all categories.
  * Picks the card with the highest absolute change percent.
  */
-export function computeInsightOfTheDay(
-  dollarCards: InsightCard[],
-  cryptoCards: InsightCard[],
-  indicatorCards: InsightCard[]
-): InsightCard | null {
-  const allCards = [...dollarCards, ...cryptoCards, ...indicatorCards].filter(
-    (c) => c.changePercent !== undefined && Number.isFinite(c.changePercent) && !c.id.endsWith("-empty")
+export function computeInsightOfTheDay(cards: InsightCard[]): InsightCard | null {
+  const validCards = cards.filter(
+    (c) => c.changePercent !== undefined && Number.isFinite(c.changePercent) && !c.id.endsWith("-empty") && c.id !== "indicator-inflacion"
   );
 
-  if (allCards.length === 0) return null;
+  let top: InsightCard;
 
-  const sorted = [...allCards].sort(
-    (a, b) => Math.abs(b.changePercent as number) - Math.abs(a.changePercent as number)
-  );
-
-  const top = sorted[0];
+  if (validCards.length === 0) {
+    const fallbackCards = cards.filter((c) => !c.id.endsWith("-empty") && c.id !== "indicator-inflacion");
+    if (fallbackCards.length === 0) return null;
+    top = fallbackCards[0];
+  } else {
+    const sorted = [...validCards].sort(
+      (a, b) => Math.abs(b.changePercent as number) - Math.abs(a.changePercent as number)
+    );
+    top = sorted[0];
+  }
 
   return {
     ...top,

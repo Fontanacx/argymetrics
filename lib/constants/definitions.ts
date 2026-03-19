@@ -59,4 +59,36 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
   eth:
     "Ethereum (ETH) es la segunda criptomoneda más grande por capitalización. Su blockchain permite la creación de contratos inteligentes (smart contracts) " +
     "y aplicaciones descentralizadas (dApps), siendo la base técnica de gran parte del ecosistema web3 y DeFi (Finanzas Descentralizadas).",
+
+  astropay:
+    "El Dólar AstroPay es la cotización implícita al comprar o vender criptomonedas (usualmente USDT o USDC) " +
+    "dentro de la billetera virtual AstroPay. Es una vía rápida y 24/7 para dolarizar saldos utilizando pesos argentinos sin cepo cambiario.",
+
+  cocos:
+    "El Dólar Cocos refleja el tipo de cambio para adquirir criptomonedas estables (USDT/USDC) a través de la plataforma Cocos Crypto. " +
+    "Se alinea con el valor del dólar cripto general y permite una exposición directa al dólar de forma digital e inmediata.",
+
+  lemoncash:
+    "El Dólar Lemon es el valor de conversión al operar USDT o USDC directamente desde la app Lemon Cash. " +
+    "Es una de las referencias más populares en Argentina para el dólar cripto minorista.",
+
+  belo:
+    "El Dólar Belo representa el tipo de cambio obtenido al intercambiar pesos por criptoactivos estables en la billetera Belo. " +
+    "Se utiliza frecuentemente para proteger ingresos o saldo en la tarjeta frente a la devaluación.",
+
+  buenbit:
+    "La cotización de Buenbit refleja el precio de compra/venta de dólares digitales (criptomonedas atadas al dólar) en su plataforma. " +
+    "Es un indicador de referencia para el ecosistema de finanzas descentralizadas local.",
+
+  euro:
+    "El Euro Oficial es la cotización de la moneda europea regulada por el Banco Central (BCRA). " +
+    "Se utiliza principalmente para operaciones de comercio exterior formal que involucran a la Unión Europea.",
+
+  eurotarjeta:
+    "El Euro Tarjeta es el tipo de cambio aplicado a los consumos en euros realizados con tarjetas de crédito o débito argentinas. " +
+    "Incluye los impuestos y retenciones (PAIS, Ganancias) aplicados sobre el Euro Oficial.",
+
+  euroblue:
+    "El Euro Blue es la cotización informal del euro en Argentina, intercambiado fuera del mercado bancario regulado. " +
+    "Al igual que el dólar blue, su valor se rige estrictamente por la oferta y la demanda del mercado paralelo.",
 };

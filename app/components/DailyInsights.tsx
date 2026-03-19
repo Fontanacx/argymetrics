@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus, Sparkles, DollarSign, Bitcoin, BarChart3, Info, type LucideIcon } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Sparkles, DollarSign, Bitcoin, BarChart3, Info, Wallet, type LucideIcon } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianGrid } from "recharts";
 import SparklineChart from "./SparklineChart";
 import Modal from "./Modal";
@@ -15,6 +15,7 @@ import {
   computeCryptoInsights,
   computeIndicatorInsights,
   computeInsightOfTheDay,
+  computeWalletInsights,
   generateNarrative,
   type InsightCard,
   type InsightCategory,
@@ -37,6 +38,7 @@ interface DailyInsightsProps {
     gold?: { fecha: string; valor: number }[];
     brent?: { fecha: string; valor: number }[];
   };
+  walletDollars?: DollarWithHistory[];
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +55,7 @@ const TABS: TabConfig[] = [
   { key: "dollars", label: "Dólares", icon: DollarSign },
   { key: "crypto", label: "Cripto", icon: Bitcoin },
   { key: "indicators", label: "Indicadores", icon: BarChart3 },
+  { key: "wallets", label: "Billeteras", icon: Wallet },
 ];
 
 // ---------------------------------------------------------------------------
@@ -71,6 +74,7 @@ export default function DailyInsights({
   inflacion,
   commodities,
   indicatorHistory,
+  walletDollars = [],
 }: DailyInsightsProps) {
   const [activeTab, setActiveTab] = useState<InsightCategory>("dollars");
   const [selectedCard, setSelectedCard] = useState<InsightCard | null>(null);
@@ -83,19 +87,23 @@ export default function DailyInsights({
     [riesgoPais, inflacion, commodities, indicatorHistory]
   );
 
-  const insightOfTheDay = useMemo(
-    () => computeInsightOfTheDay(dollarCards, cryptoCards, indicatorCards),
-    [dollarCards, cryptoCards, indicatorCards]
-  );
+  const walletCards = useMemo(() => computeWalletInsights(walletDollars), [walletDollars]);
 
   // Active category data
   const categoryMap: Record<InsightCategory, InsightCard[]> = {
     dollars: dollarCards,
     crypto: cryptoCards,
     indicators: indicatorCards,
+    wallets: walletCards,
   };
 
   const activeCards = categoryMap[activeTab];
+  
+  const insightOfTheDay = useMemo(
+    () => computeInsightOfTheDay(activeCards),
+    [activeCards]
+  );
+
   const narrative = useMemo(
     () => generateNarrative(activeTab, activeCards),
     [activeTab, activeCards]

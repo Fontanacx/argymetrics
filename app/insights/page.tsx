@@ -3,10 +3,11 @@ import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import SectionHeader from "@/app/components/SectionHeader";
 import DailyInsights from "@/app/components/DailyInsights";
-import { fetchDollarsWithHistory, fetchRiesgoPaisHistory } from "@/lib/api/historical";
+import { fetchDollarsWithHistory, fetchRiesgoPaisHistory, fetchFullDollarHistory } from "@/lib/api/historical";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory } from "@/lib/api/indicators";
 import { fetchCommodities, fetchCommodityHistory } from "@/lib/api/commodities";
 import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
+import { fetchWalletDollars } from "@/lib/api/wallets";
 
 export const revalidate = 0;
 
@@ -17,7 +18,8 @@ export const revalidate = 0;
 export default async function InsightsPage() {
   const [
     dollars, riesgoPais, inflacion, commodities, cryptos, 
-    btcHistory, ethHistory, riesgoHistory, inflacionHistory, goldHistory, brentHistory
+    btcHistory, ethHistory, riesgoHistory, inflacionHistory, goldHistory, brentHistory,
+    walletDollars, criptoHistoryFull
   ] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchRiesgoPais(),
@@ -30,7 +32,19 @@ export default async function InsightsPage() {
     fetchInflacionHistory(),
     fetchCommodityHistory("GC=F"), // Oro
     fetchCommodityHistory("BZ=F"), // Brent
+    fetchWalletDollars(),
+    fetchFullDollarHistory("cripto"),
   ]);
+
+  const criptoDollar = dollars.find((d) => d.rate.casa === "cripto");
+  const criptoHistory = criptoDollar?.history || [];
+  const criptoVariacion = criptoDollar?.variacion ?? null;
+
+  const enrichedWalletDollars = walletDollars?.map((w) => ({
+    ...w,
+    history: criptoHistory,
+    variacion: criptoVariacion,
+  })) || [];
 
   return (
     <div
@@ -64,6 +78,7 @@ export default async function InsightsPage() {
               gold: goldHistory,
               brent: brentHistory,
             }}
+            walletDollars={enrichedWalletDollars}
           />
         </section>
       </main>
