@@ -3,7 +3,7 @@
 // Computes financial insights from server-provided data for the dashboard.
 // ---------------------------------------------------------------------------
 
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry } from "../types";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry } from "../types";
 import type { CommodityQuote } from "../api/commodities";
 import { formatARS, formatPercent, formatPoints } from "../formatters/currency";
 import { CASA_LABELS } from "../constants";
@@ -286,7 +286,13 @@ export function computeCryptoInsights(
 export function computeIndicatorInsights(
   riesgoPais: RiesgoPais | null,
   inflacion: InflacionMensual | null,
-  commodities: CommodityQuote[]
+  commodities: CommodityQuote[],
+  indicatorHistory?: {
+    riesgoPais?: RiesgoPaisHistoryEntry[];
+    inflacion?: InflacionMensual[];
+    gold?: { fecha: string; valor: number }[];
+    brent?: { fecha: string; valor: number }[];
+  }
 ): InsightCard[] {
   const cards: InsightCard[] = [];
 
@@ -306,6 +312,9 @@ export function computeIndicatorInsights(
       sentiment: isHigh ? "negative" : isMedium ? "neutral" : "positive",
       size: "featured",
       context: "daily",
+      sparklineData: indicatorHistory?.riesgoPais?.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "riesgo",
     });
   } else {
     cards.push(buildFallbackCard("indicator-riesgo-empty", "Riesgo País", "Sin datos disponibles"));
@@ -328,6 +337,9 @@ export function computeIndicatorInsights(
       sentiment: isLow ? "positive" : isModerate ? "neutral" : "negative",
       size: "normal",
       context: "monthly",
+      sparklineData: indicatorHistory?.inflacion?.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "inflacion",
     });
   } else {
     cards.push(buildFallbackCard("indicator-inflacion-empty", "Inflación", "Sin datos disponibles"));
@@ -345,6 +357,9 @@ export function computeIndicatorInsights(
       sentiment: gold.changePercent > 0 ? "positive" : gold.changePercent < 0 ? "negative" : "neutral",
       size: "normal",
       context: "24h",
+      sparklineData: indicatorHistory?.gold?.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "commodity",
     });
   }
 
@@ -360,6 +375,9 @@ export function computeIndicatorInsights(
       sentiment: brent.changePercent > 0 ? "positive" : brent.changePercent < 0 ? "negative" : "neutral",
       size: "normal",
       context: "24h",
+      sparklineData: indicatorHistory?.brent?.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "commodity",
     });
   }
 

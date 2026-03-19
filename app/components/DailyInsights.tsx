@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown, Minus, Sparkles, DollarSign, Bitcoin, BarChar
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianGrid } from "recharts";
 import SparklineChart from "./SparklineChart";
 import Modal from "./Modal";
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry } from "@/lib/types";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry } from "@/lib/types";
 import type { CommodityQuote } from "@/lib/api/commodities";
 import { formatShortDate } from "@/lib/formatters/date";
 import { formatPercent as formatPercentUtil, formatPoints as formatPointsUtil } from "@/lib/formatters/currency";
@@ -31,6 +31,12 @@ interface DailyInsightsProps {
   riesgoPais: RiesgoPais | null;
   inflacion: InflacionMensual | null;
   commodities: CommodityQuote[];
+  indicatorHistory?: {
+    riesgoPais?: RiesgoPaisHistoryEntry[];
+    inflacion?: InflacionMensual[];
+    gold?: { fecha: string; valor: number }[];
+    brent?: { fecha: string; valor: number }[];
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +70,7 @@ export default function DailyInsights({
   riesgoPais,
   inflacion,
   commodities,
+  indicatorHistory,
 }: DailyInsightsProps) {
   const [activeTab, setActiveTab] = useState<InsightCategory>("dollars");
   const [selectedCard, setSelectedCard] = useState<InsightCard | null>(null);
@@ -72,8 +79,8 @@ export default function DailyInsights({
   const dollarCards = useMemo(() => computeDollarInsights(dollars), [dollars]);
   const cryptoCards = useMemo(() => computeCryptoInsights(cryptos, cryptoHistory), [cryptos, cryptoHistory]);
   const indicatorCards = useMemo(
-    () => computeIndicatorInsights(riesgoPais, inflacion, commodities),
-    [riesgoPais, inflacion, commodities]
+    () => computeIndicatorInsights(riesgoPais, inflacion, commodities, indicatorHistory),
+    [riesgoPais, inflacion, commodities, indicatorHistory]
   );
 
   const insightOfTheDay = useMemo(
