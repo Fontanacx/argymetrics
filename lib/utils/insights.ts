@@ -3,7 +3,7 @@
 // Computes financial insights from server-provided data for the dashboard.
 // ---------------------------------------------------------------------------
 
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate } from "../types";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry } from "../types";
 import type { CommodityQuote } from "../api/commodities";
 import { formatARS, formatPercent, formatPoints } from "../formatters/currency";
 import { CASA_LABELS } from "../constants";
@@ -141,7 +141,7 @@ export function computeDollarInsights(dollars: DollarWithHistory[]): InsightCard
     const cheapest = [...withBuy].sort((a, b) => a.rate.compra - b.rate.compra)[0];
     cards.push({
       id: "dollar-cheapest",
-      label: "Más Barato para Comprar",
+      label: "Más barato para la compra",
       value: CASA_LABELS[cheapest.rate.casa] ?? cheapest.rate.nombre,
       subtitle: `Compra: ${formatARS(cheapest.rate.compra)}`,
       sentiment: "positive",
@@ -155,7 +155,7 @@ export function computeDollarInsights(dollars: DollarWithHistory[]): InsightCard
     const expensive = [...withSell].sort((a, b) => b.rate.venta - a.rate.venta)[0];
     cards.push({
       id: "dollar-expensive",
-      label: "Más Caro para Vender",
+      label: "Más caro para la venta",
       value: CASA_LABELS[expensive.rate.casa] ?? expensive.rate.nombre,
       subtitle: `Venta: ${formatARS(expensive.rate.venta)}`,
       sentiment: "negative",
@@ -174,7 +174,8 @@ export function computeDollarInsights(dollars: DollarWithHistory[]): InsightCard
  * Computes insight cards from cryptocurrency data.
  */
 export function computeCryptoInsights(
-  cryptos: Record<string, CryptoRate | null>
+  cryptos: Record<string, CryptoRate | null>,
+  cryptoHistory?: Record<string, CryptoHistoryEntry[]>
 ): InsightCard[] {
   const entries = Object.entries(cryptos)
     .filter((entry): entry is [string, CryptoRate] => entry[1] !== null)
@@ -202,6 +203,9 @@ export function computeCryptoInsights(
     size: "featured",
     context: "24h",
     rank: 1,
+    sparklineData: cryptoHistory?.[top.key]?.slice(-7) as unknown[],
+    sparklineDataKey: "valor",
+    sparklineFormatType: "crypto",
   });
 
   // Worst performer (only if more than 1 crypto)
@@ -216,6 +220,9 @@ export function computeCryptoInsights(
       sentiment: worst.rate.variacion < 0 ? "negative" : "neutral",
       size: "normal",
       context: "24h",
+      sparklineData: cryptoHistory?.[worst.key]?.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "crypto",
     });
   }
 
@@ -233,6 +240,9 @@ export function computeCryptoInsights(
     sentiment: "neutral",
     size: "normal",
     context: "24h",
+    sparklineData: cryptoHistory?.[stableCrypto.key]?.slice(-7) as unknown[],
+    sparklineDataKey: "valor",
+    sparklineFormatType: "crypto",
   });
 
   // Market sentiment

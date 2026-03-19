@@ -6,7 +6,7 @@ import DailyInsights from "@/app/components/DailyInsights";
 import { fetchDollarsWithHistory } from "@/lib/api/historical";
 import { fetchRiesgoPais, fetchInflacion } from "@/lib/api/indicators";
 import { fetchCommodities } from "@/lib/api/commodities";
-import { fetchCryptos } from "@/lib/api/crypto";
+import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
 
 export const revalidate = 0;
 
@@ -15,13 +15,15 @@ export const revalidate = 0;
  * All data fetched server-side, passed to the client DailyInsights component.
  */
 export default async function InsightsPage() {
-  const [dollars, riesgoPais, inflacion, commodities, cryptos] =
+  const [dollars, riesgoPais, inflacion, commodities, cryptos, btcHistory, ethHistory] =
     await Promise.all([
       fetchDollarsWithHistory(),
       fetchRiesgoPais(),
       fetchInflacion(),
       fetchCommodities(),
       fetchCryptos(),
+      fetchCryptoHistory("BTC-USD"),
+      fetchCryptoHistory("ETH-USD"),
     ]);
 
   return (
@@ -46,6 +48,7 @@ export default async function InsightsPage() {
           <DailyInsights
             dollars={dollars}
             cryptos={cryptos}
+            cryptoHistory={{ btc: btcHistory, eth: ethHistory }}
             riesgoPais={riesgoPais}
             inflacion={inflacion}
             commodities={commodities}

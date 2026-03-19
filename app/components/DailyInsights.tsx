@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown, Minus, Sparkles, DollarSign, Bitcoin, BarChar
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianGrid } from "recharts";
 import SparklineChart from "./SparklineChart";
 import Modal from "./Modal";
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate } from "@/lib/types";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry } from "@/lib/types";
 import type { CommodityQuote } from "@/lib/api/commodities";
 import { formatShortDate } from "@/lib/formatters/date";
 import { formatPercent as formatPercentUtil, formatPoints as formatPointsUtil } from "@/lib/formatters/currency";
@@ -27,6 +27,7 @@ import {
 interface DailyInsightsProps {
   dollars: DollarWithHistory[];
   cryptos: Record<string, CryptoRate | null>;
+  cryptoHistory?: Record<string, CryptoHistoryEntry[]>;
   riesgoPais: RiesgoPais | null;
   inflacion: InflacionMensual | null;
   commodities: CommodityQuote[];
@@ -59,6 +60,7 @@ const TABS: TabConfig[] = [
 export default function DailyInsights({
   dollars,
   cryptos,
+  cryptoHistory,
   riesgoPais,
   inflacion,
   commodities,
@@ -68,7 +70,7 @@ export default function DailyInsights({
 
   // Compute all insights once via memoization
   const dollarCards = useMemo(() => computeDollarInsights(dollars), [dollars]);
-  const cryptoCards = useMemo(() => computeCryptoInsights(cryptos), [cryptos]);
+  const cryptoCards = useMemo(() => computeCryptoInsights(cryptos, cryptoHistory), [cryptos, cryptoHistory]);
   const indicatorCards = useMemo(
     () => computeIndicatorInsights(riesgoPais, inflacion, commodities),
     [riesgoPais, inflacion, commodities]
