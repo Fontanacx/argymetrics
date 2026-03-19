@@ -180,7 +180,7 @@ export default function DailyInsights({
 
       {/* Tab bar */}
       <div
-        className="insights-tab-bar flex gap-1 rounded-lg border p-1"
+        className="insights-tab-bar flex gap-1 rounded-lg border p-1 overflow-x-auto hide-scrollbar"
         style={{
           background: "var(--bg-secondary)",
           borderColor: "var(--border-primary)",
@@ -192,7 +192,7 @@ export default function DailyInsights({
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`insights-tab flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+              className={`insights-tab flex-1 shrink-0 whitespace-nowrap items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                 activeTab === tab.key ? "insights-tab-active" : ""
               }`}
               style={{
