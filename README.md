@@ -53,4 +53,4 @@ Este proyecto utiliza `pnpm` como gestor de paquetes.
 Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
 
 ---
-*Datos provistos por DolarAPI, ArgentinaDatos y CriptoYa. La información es de carácter informativo y no constituye asesoramiento financiero.*
+*Datos provistos por DolarAPI, ArgentinaDatos, Yahoo Finance y CriptoYa. La información es de carácter informativo y no constituye asesoramiento financiero.*
