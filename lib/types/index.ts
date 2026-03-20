@@ -26,7 +26,10 @@ export type DollarCasa =
   | "cocos"
   | "lemoncash"
   | "belo"
-  | "buenbit";
+  | "buenbit"
+  | "real"
+  | "realblue"
+  | "realtarjeta";
 
 // ---------------------------------------------------------------------------
 // ArgentinaDatos historical response (GET /v1/cotizaciones/dolares/{casa})

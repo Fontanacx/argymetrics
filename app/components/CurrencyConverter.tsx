@@ -114,6 +114,7 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
   // Provide a flag emoji based on casa
   const getFlag = (casa: string) => {
     if (casa.includes("euro")) return "🇪🇺";
+    if (casa.includes("real")) return "🇧🇷";
     return "🇺🇸";
   };
 
@@ -217,7 +218,13 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
           </div>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold" style={{ color: "var(--text-muted)" }}>
-              {isPesosTop ? "$" : getFlag(selectedCurrency).includes("🇺🇸") ? "US$" : "€"}
+              {isPesosTop 
+                 ? "$" 
+                 : getFlag(selectedCurrency).includes("🇧🇷") 
+                   ? "R$"
+                   : getFlag(selectedCurrency).includes("🇺🇸") 
+                     ? "US$" 
+                     : "€"}
             </span>
             <input
               type="text"
@@ -280,7 +287,13 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                     : "0,00"}
               </span>
               <span className="text-xl font-bold shrink-0" style={{ color: "var(--text-primary)" }}>
-                {!isPesosTop ? "(ARS)" : getFlag(selectedCurrency).includes("🇺🇸") ? "USD" : "EUR"}
+                {!isPesosTop 
+                  ? "(ARS)" 
+                  : getFlag(selectedCurrency).includes("🇧🇷") 
+                    ? "BRL" 
+                    : getFlag(selectedCurrency).includes("🇺🇸") 
+                      ? "USD" 
+                      : "EUR"}
               </span>
             </div>
             {/* Precio Base Helper */}

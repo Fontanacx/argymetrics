@@ -46,6 +46,9 @@ export default async function Home() {
     btcHistory,
     ethHistory,
     walletDollars,
+    realHistory,
+    realBlueHistory,
+    realTarjetaHistory,
   ] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchRiesgoPais(),
@@ -70,6 +73,9 @@ export default async function Home() {
     fetchCryptoHistory("BTC-USD"),
     fetchCryptoHistory("ETH-USD"),
     fetchWalletDollars(),
+    fetchFullDollarHistory("real"),
+    fetchFullDollarHistory("realblue"),
+    fetchFullDollarHistory("realtarjeta"),
   ]);
 
   // ---------------------------------------------------------------------------
@@ -109,6 +115,9 @@ export default async function Home() {
     euroblue: euroBlueHistory,
     eurotarjeta: euroTarjetaHistory,
     cripto: criptoHistoryFull,
+    real: realHistory,
+    realblue: realBlueHistory,
+    realtarjeta: realTarjetaHistory,
   };
 
   // Compute the most recent update timestamp from dollar data

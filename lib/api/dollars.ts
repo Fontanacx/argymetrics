@@ -17,9 +17,10 @@ import { DOLARAPI_BASE, REVALIDATE_DOLLARS, DISPLAYED_CASAS } from "../constants
  */
 export async function fetchAllDollars(): Promise<DollarRate[]> {
   try {
-    const [dolaresRes, euroOficialRes] = await Promise.all([
+    const [dolaresRes, euroOficialRes, realOficialRes] = await Promise.all([
       fetch(`${DOLARAPI_BASE}/v1/dolares`, { next: { revalidate: REVALIDATE_DOLLARS } }),
       fetch(`${DOLARAPI_BASE}/v1/cotizaciones/eur`, { next: { revalidate: REVALIDATE_DOLLARS } }),
+      fetch(`${DOLARAPI_BASE}/v1/cotizaciones/brl`, { next: { revalidate: REVALIDATE_DOLLARS } }),
     ]);
 
     if (!dolaresRes.ok) {
@@ -52,6 +53,7 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
 
     // Synthesize Euro Blue from Dolar Blue (since DolarAPI lacks an endpoint)
     const dolarBlue = dolaresData.find((d) => d.casa === "blue");
+    const dolarOficial = dolaresData.find((d) => d.casa === "oficial");
     if (dolarBlue) {
       dolaresData.push({
         ...dolarBlue,
@@ -59,6 +61,39 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
         nombre: "Euro Blue",
         compra: Number((dolarBlue.compra * 1.086).toFixed(2)),
         venta: Number((dolarBlue.venta * 1.086).toFixed(2)),
+      });
+    }
+
+    // Add Real Oficial and synthetically compute Real Blue + Real Tarjeta
+    if (realOficialRes && realOficialRes.ok) {
+      const realRaw = await realOficialRes.json();
+      
+      dolaresData.push({
+        ...realRaw,
+        casa: "real",
+        nombre: "Real Oficial",
+      });
+
+      // Real Blue via cross-rate: BRL/USD = Real_ARS / Dolar_ARS, then × Dolar Blue
+      if (dolarBlue && dolarOficial && dolarOficial.compra > 0 && dolarOficial.venta > 0) {
+        const brlUsdCompra = realRaw.compra / dolarOficial.compra;
+        const brlUsdVenta = realRaw.venta / dolarOficial.venta;
+        dolaresData.push({
+          ...realRaw,
+          casa: "realblue",
+          nombre: "Real Blue",
+          compra: Number((brlUsdCompra * dolarBlue.compra).toFixed(2)),
+          venta: Number((brlUsdVenta * dolarBlue.venta).toFixed(2)),
+        });
+      }
+
+      // Real Tarjeta = Real Oficial × 1.6 (PAIS + Ganancias taxes)
+      dolaresData.push({
+        ...realRaw,
+        casa: "realtarjeta",
+        nombre: "Real Tarjeta",
+        compra: Number((realRaw.compra * 1.6).toFixed(2)),
+        venta: Number((realRaw.venta * 1.6).toFixed(2)),
       });
     }
 

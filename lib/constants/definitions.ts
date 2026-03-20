@@ -95,4 +95,16 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
   gas:
     "El Gas Natural (Henry Hub Futures) es la principal referencia del mercado de gas en Norteamérica. " +
     "Su precio es un indicador clave de los costos energéticos globales, influyendo fuertemente en la industria y la economía a nivel internacional.",
+
+  realblue:
+    "El Real Blue es la cotización del real brasileño en el mercado informal argentino. " +
+    "Se calcula tomando como referencia el Dólar Blue y la paridad internacional del real frente al dólar.",
+
+  real:
+    "El Real Oficial es la cotización del real brasileño regulada por el Banco Central (BCRA). " +
+    "Es el tipo de cambio utilizado para operaciones formales de comercio bilateral entre Argentina y Brasil.",
+
+  realtarjeta:
+    "El Real Tarjeta es el tipo de cambio aplicado a consumos en reales realizados con tarjetas argentinas. " +
+    "Incluye los impuestos y retenciones (PAIS, Ganancias) aplicados sobre el Real Oficial, resultando en un recargo del 60%.",
 };

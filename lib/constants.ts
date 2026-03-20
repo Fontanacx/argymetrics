@@ -6,6 +6,7 @@ import type { DollarCasa } from "./types";
 
 export const DOLARAPI_BASE = "https://dolarapi.com";
 export const ARGENTINADATOS_BASE = "https://api.argentinadatos.com";
+export const AMBITO_BASE = "https://mercados.ambito.com";
 export const CRIPTOYA_BASE = "https://criptoya.com/api";
 export const CRIPTOYA_RP = `${CRIPTOYA_BASE}/riesgo-pais`;
 
@@ -34,6 +35,9 @@ export const DISPLAYED_CASAS: DollarCasa[] = [
   "euro",
   "euroblue",
   "eurotarjeta",
+  "real",
+  "realblue",
+  "realtarjeta",
 ];
 
 /** Human-readable labels for each casa */
@@ -53,6 +57,9 @@ export const CASA_LABELS: Record<DollarCasa, string> = {
   lemoncash: "Lemon Cash",
   belo: "Belo",
   buenbit: "Buenbit",
+  real: "Real Oficial",
+  realblue: "Real Blue",
+  realtarjeta: "Real Tarjeta",
 };
 
 /** Brand colors for Crypto/Fintech Virtual Wallets */

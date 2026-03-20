@@ -7,11 +7,95 @@ import type {
 } from "../types";
 import {
   ARGENTINADATOS_BASE,
+  AMBITO_BASE,
   REVALIDATE_HISTORICAL,
   DISPLAYED_CASAS,
   HISTORY_DAYS,
 } from "../constants";
 import { fetchAllDollars } from "./dollars";
+
+// ---------------------------------------------------------------------------
+// Helper: Fetch Real (BRL) historical data from Ámbito
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches Real (BRL) historical price data from Ámbito's chart API.
+ *
+ * Ámbito returns data as: [["fecha","Real"],[date, value], ...]
+ * We transform this into DollarHistoryEntry[] with the same value for
+ * compra and venta (Ámbito provides only the close/venta price).
+ *
+ * For "realblue", we apply the BRL/USD cross-rate × Dolar Blue/Oficial gap.
+ * For "realtarjeta", we multiply by 1.6 (PAIS + Ganancias taxes).
+ *
+ * @param casa - "real", "realblue", or "realtarjeta"
+ * @param maxDays - Maximum number of days to return
+ */
+async function fetchRealHistory(
+  casa: DollarCasa,
+  maxDays: number
+): Promise<DollarHistoryEntry[]> {
+  try {
+    // Pick the best Ámbito period for the requested range
+    const periodo = maxDays <= 7 ? "semanal" : maxDays <= 30 ? "mensual" : "anual";
+
+    const res = await fetch(`${AMBITO_BASE}/real/grafico/${periodo}`, {
+      next: { revalidate: REVALIDATE_HISTORICAL },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; ArgyMetrics/1.0)" },
+    });
+
+    if (!res.ok) {
+      console.error(`[fetchRealHistory] HTTP ${res.status}`);
+      return [];
+    }
+
+    const raw: (string | number)[][] = await res.json();
+
+    if (!Array.isArray(raw) || raw.length < 2) return [];
+
+    // Skip header row, parse date from "DD/MM/YYYY" to "YYYY-MM-DD"
+    let entries: DollarHistoryEntry[] = raw.slice(1).map((row) => {
+      const [fechaRaw, value] = row as [string, number];
+      const parts = fechaRaw.split("/");
+      const fecha = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+      return { fecha, compra: value, venta: value };
+    });
+
+    // Sort ascending by date
+    entries.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+    // Slice to requested range
+    entries = entries.slice(-maxDays);
+
+    // Apply multipliers for Blue / Tarjeta
+    if (casa === "realblue") {
+      // Approximate cross-rate gap: Dolar Blue / Dolar Oficial ≈ 1.01
+      // Use current rates for best accuracy
+      const dollars = await fetchAllDollars();
+      const dolarBlue = dollars.find((d) => d.casa === "blue");
+      const dolarOficial = dollars.find((d) => d.casa === "oficial");
+      if (dolarBlue && dolarOficial && dolarOficial.venta > 0) {
+        const gap = dolarBlue.venta / dolarOficial.venta;
+        entries = entries.map((e) => ({
+          ...e,
+          compra: Number((e.compra * gap).toFixed(2)),
+          venta: Number((e.venta * gap).toFixed(2)),
+        }));
+      }
+    } else if (casa === "realtarjeta") {
+      entries = entries.map((e) => ({
+        ...e,
+        compra: Number((e.compra * 1.6).toFixed(2)),
+        venta: Number((e.venta * 1.6).toFixed(2)),
+      }));
+    }
+
+    return entries;
+  } catch (error) {
+    console.error(`[fetchRealHistory] Network error`, error);
+    return [];
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Fetch historical data for a single casa (sparkline — last 7 days)
@@ -30,8 +114,16 @@ export async function fetchDollarHistory(
   casa: DollarCasa
 ): Promise<DollarHistoryEntry[]> {
   try {
+    const isReal = casa === "real" || casa === "realblue" || casa === "realtarjeta";
     const isEuroTarjeta = casa === "eurotarjeta";
     const isEuro = casa === "euro" || casa === "euroblue" || isEuroTarjeta;
+
+    // ---------- Real variants: fetch from Ámbito ----------
+    if (isReal) {
+      return await fetchRealHistory(casa, HISTORY_DAYS);
+    }
+
+    // ---------- Dollar / Euro variants: ArgentinaDatos ----------
     const endpointCasa = casa === "euroblue" ? "blue" : isEuro ? "oficial" : casa;
     
     // ArgentinaDatos lacks historical Euros. Synthesize using Dollars.
@@ -168,8 +260,16 @@ export async function fetchFullDollarHistory(
   casa: DollarCasa
 ): Promise<DollarHistoryEntry[]> {
   try {
+    const isReal = casa === "real" || casa === "realblue" || casa === "realtarjeta";
     const isEuroTarjeta = casa === "eurotarjeta";
     const isEuro = casa === "euro" || casa === "euroblue" || isEuroTarjeta;
+
+    // ---------- Real variants: fetch from Ámbito ----------
+    if (isReal) {
+      return await fetchRealHistory(casa, 365);
+    }
+
+    // ---------- Dollar / Euro variants: ArgentinaDatos ----------
     const endpointCasa = casa === "euroblue" ? "blue" : isEuro ? "oficial" : casa;
     
     // ArgentinaDatos lacks historical Euros. Synthesize using Dollars.
