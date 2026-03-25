@@ -186,6 +186,9 @@ export interface BriefingInput {
   stocksEnVerde: number;   // count of stocks with positive variation
   stocksEnRojo: number;    // count of stocks with negative variation
   mep7dAverage: number | null; // 7-day average of MEP for freelancer comparison
+  btc: { value: number; variation: number | null };
+  eth: { value: number; variation: number | null };
+  wallets: { name: string; compra: number; venta: number }[];
 }
 
 export interface SemaforoItem {

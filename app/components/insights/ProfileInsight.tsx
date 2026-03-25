@@ -30,6 +30,16 @@ export function ProfileInsight({ profile, data }: ProfileInsightProps) {
       icon = <CheckCircle2 size={18} />;
       color = "var(--text-primary)";
     }
+    
+    const bestWallet = data.wallets && data.wallets.length > 0 
+      ? data.wallets.reduce((prev, curr) => curr.compra > prev.compra ? curr : prev)
+      : null;
+      
+    if (bestWallet && bestWallet.compra > mep) {
+        message += ` Considerá liquidar vía ${bestWallet.name} a ${formatARS(bestWallet.compra)}, que paga mejor que el MEP tradicional.`;
+    } else if (bestWallet) {
+        message += ` La billetera virtual con mejor conversión cripto hoy es ${bestWallet.name} (${formatARS(bestWallet.compra)}).`;
+    }
 
     return (
       <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">

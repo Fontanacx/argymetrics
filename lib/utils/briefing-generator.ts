@@ -41,5 +41,24 @@ export function generateBriefingText(data: BriefingInput): string {
     s3 = `En el mercado bursátil, la jornada es mixta: ${topGainer?.symbol.replace(".BA", "")} sube ${gainerStr} mientras que ${topLoser?.symbol.replace(".BA", "")} retrocede ${formatPercent(topLoser?.variation || 0)}.`;
   }
 
-  return `${s1} ${s2} ${s3}`;
+  // 4. Wallets & Crypto Market
+  let s4 = "";
+  const bestWallet = data.wallets && data.wallets.length > 0 
+      ? data.wallets.reduce((prev, curr) => curr.compra > prev.compra ? curr : prev)
+      : null;
+      
+  const hasStrongBtc = data.btc.variation !== null && Math.abs(data.btc.variation) > 1.5;
+  const verbBtc = data.btc.variation && data.btc.variation > 0 ? "avanzando" : "retrocediendo";
+  
+  if (hasStrongBtc && bestWallet) {
+     s4 = `En la esfera digital, Bitcoin opera con fuerte volatilidad ${verbBtc} un ${Math.abs(data.btc.variation!).toFixed(1)}%, mientras que la mejor cotización para liquidar dólares a moneda local la ofrece ${bestWallet.name} comprando a ${formatARS(bestWallet.compra)}.`;
+  } else if (bestWallet) {
+     s4 = `A nivel de pagos digitales, la mejor cotización para liquidar saldo corre por cuenta de la billetera ${bestWallet.name} a ${formatARS(bestWallet.compra)}.`;
+  } else if (hasStrongBtc) {
+     s4 = `En la esfera digital, Bitcoin opera con fuerte volatilidad, ${verbBtc} un ${Math.abs(data.btc.variation!).toFixed(1)}% rondando los US$ ${data.btc.value.toLocaleString('es-AR')}.`;
+  } else {
+     s4 = `En el ecosistema criptográfico y de billeteras virtuales, las cotizaciones digitales operan de manera lateral sin disrupciones marcadas.`;
+  }
+
+  return `${s1} ${s2} ${s3} ${s4}`;
 }

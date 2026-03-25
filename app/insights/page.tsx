@@ -90,6 +90,19 @@ export default async function InsightsPage(props: { searchParams: Promise<{ [key
   const brent = isTimeTravel ? findHistMatch(brentHistory, asOfDate, "valor") : { val: rawBrent?.price || 0, var: rawBrent?.changePercent || null };
   const rp = isTimeTravel ? findHistMatch(riesgoHistory, asOfDate, "valor") : { val: riesgoPais?.valor || 0, var: null }; // handled below for weekly
 
+  const rawBtc = cryptos["BTC"] || { valor: 0, variacion: null };
+  const rawEth = cryptos["ETH"] || { valor: 0, variacion: null };
+  const btc = isTimeTravel ? findHistMatch(btcHistory, asOfDate, "valor") : { val: rawBtc.valor, var: rawBtc.variacion };
+  const eth = isTimeTravel ? findHistMatch(ethHistory, asOfDate, "valor") : { val: rawEth.valor, var: rawEth.variacion };
+
+  // Wallets don't have native historical APIs. If Time Travelling, we scale current prices by the generic crypto devaluation
+  const criptoRatio = rawCripto.rate.venta > 0 ? (cripto.val / rawCripto.rate.venta) : 1;
+  const currentWallets = walletDollars.map(w => ({
+     name: w.rate.casa,
+     compra: isTimeTravel ? w.rate.compra * criptoRatio : w.rate.compra,
+     venta: isTimeTravel ? w.rate.venta * criptoRatio : w.rate.venta
+  }));
+
   // Inflacion is tricky as it's monthly
   let inflacionVal = inflacion?.valor || 0;
   let inflacionDate = inflacion?.fecha || "";
@@ -179,7 +192,10 @@ export default async function InsightsPage(props: { searchParams: Promise<{ [key
     stocks: currentStocks,
     stocksEnVerde,
     stocksEnRojo,
-    mep7dAverage
+    mep7dAverage,
+    btc: { value: btc.val, variation: btc.var },
+    eth: { value: eth.val, variation: eth.var },
+    wallets: currentWallets
   };
 
 

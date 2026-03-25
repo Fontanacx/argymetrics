@@ -34,7 +34,7 @@ const pointsFormatter = new Intl.NumberFormat("es-AR", {
  * Example: 1415.5 → "$ 1.415,50"
  */
 export function formatARS(value: number): string {
-  return arsFormatter.format(value);
+  return arsFormatter.format(value).replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**
@@ -42,7 +42,7 @@ export function formatARS(value: number): string {
  * Example: 1415.5 → "$ 1.416"
  */
 export function formatCompact(value: number): string {
-  return compactFormatter.format(value);
+  return compactFormatter.format(value).replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**
@@ -50,7 +50,7 @@ export function formatCompact(value: number): string {
  * Example: 2.45 → "+2,5%", -1.1 → "-1,1%"
  */
 export function formatPercent(value: number): string {
-  return `${percentFormatter.format(value)}%`;
+  return `${percentFormatter.format(value)}%`.replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**
@@ -58,7 +58,7 @@ export function formatPercent(value: number): string {
  * Example: 574 → "574"
  */
 export function formatPoints(value: number): string {
-  return pointsFormatter.format(value);
+  return pointsFormatter.format(value).replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**
@@ -66,5 +66,5 @@ export function formatPoints(value: number): string {
  * Example: (1405, 1425) → "$ 20,00"
  */
 export function formatSpread(compra: number, venta: number): string {
-  return arsFormatter.format(Math.abs(venta - compra));
+  return arsFormatter.format(Math.abs(venta - compra)).replace(/[\u00A0\u202F]/g, ' ');
 }

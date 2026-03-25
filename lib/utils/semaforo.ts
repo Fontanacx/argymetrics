@@ -51,23 +51,43 @@ export function computeSemaforo(data: BriefingInput): SemaforoItem[] {
     descripcion: `${Math.round(rp)} pts${rpTrend}`
   });
 
-  // 3. Criptomonedas
-  const criptoDiff = Math.abs((data.blue.value - data.cripto.value) / data.cripto.value * 100);
-  let statusCripto: "verde" | "amarillo" | "rojo" = "verde";
-  let tituloCripto = "ALINEADO";
-  if (criptoDiff > 3) {
-    statusCripto = "rojo";
-    tituloCripto = "DIVERGENCIA ALTA";
-  } else if (criptoDiff >= 1) {
-    statusCripto = "amarillo";
-    tituloCripto = "DIVERGENCIA LEVE";
+  // 3. Cripto & Billeteras
+  let criptoMessage = "";
+  let criptoStatus = 0;
+  
+  const bestWallet = data.wallets && data.wallets.length > 0 
+    ? data.wallets.reduce((prev, curr) => curr.venta < prev.venta ? curr : prev)
+    : null;
+
+  if (bestWallet && bestWallet.venta < data.blue.value - 10) {
+    criptoMessage = `Dólar Cripto atractivo. ${bestWallet.name} ofrece la oportunidad más barata a $${Math.floor(bestWallet.venta)}.`;
+    criptoStatus = 1;
+  } else if (data.btc.variation !== null && data.btc.variation > 5) {
+    criptoMessage = `Dólar Cripto y Blue emparejados. Fuerte rally cripto liderado por Bitcoin (+${data.btc.variation.toFixed(1)}%).`;
+    criptoStatus = 1;
+  } else if (data.cripto.value > data.blue.value + 30) {
+    criptoMessage = `Dólar Cripto operando con fuerte prima sobre el Blue. Billeteras virtuales marcan precios de cobertura.`;
+    criptoStatus = -1;
+  } else if (data.btc.variation !== null && data.btc.variation < -5) {
+     criptoMessage = `Mercado Cripto presionado a la baja (Bitcoin ${data.btc.variation.toFixed(1)}%). Dólar estable en billeteras.`;
+     criptoStatus = -1;
+  } else {
+    const bestName = bestWallet ? bestWallet.name : "billeteras";
+    const bestVenta = bestWallet ? Math.floor(bestWallet.venta) : Math.floor(data.cripto.value);
+    criptoMessage = `Dólar Cripto y Blue operando casi a la par. Cotización destacada: ${bestName} aprox. $${bestVenta}.`;
+    criptoStatus = 0;
   }
+  
+  let statusCStr: "verde" | "amarillo" | "rojo" = "amarillo";
+  let tituloCStr = "ALINEADO";
+  if (criptoStatus === 1) { statusCStr = "verde"; tituloCStr = "OPORTUNIDAD"; }
+  else if (criptoStatus === -1) { statusCStr = "rojo"; tituloCStr = "SOBREPRECIO"; }
 
   items.push({
-    label: "Criptomonedas",
-    status: statusCripto,
-    titulo: tituloCripto,
-    descripcion: `Blue y Cripto con ${criptoDiff.toFixed(1)}% de diferencia`
+    label: "Cripto & Billeteras",
+    status: statusCStr,
+    titulo: tituloCStr,
+    descripcion: criptoMessage
   });
 
   // 4. Inflación
