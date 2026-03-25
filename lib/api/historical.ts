@@ -11,7 +11,7 @@ import {
   REVALIDATE_HISTORICAL,
   DISPLAYED_CASAS,
   HISTORY_DAYS,
-} from "../constants";
+} from "@/lib/constants";
 import { fetchAllDollars } from "./dollars";
 
 // ---------------------------------------------------------------------------

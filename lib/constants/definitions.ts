@@ -107,4 +107,26 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
   realtarjeta:
     "El Real Tarjeta es el tipo de cambio aplicado a consumos en reales realizados con tarjetas argentinas. " +
     "Incluye los impuestos y retenciones (PAIS, Ganancias) aplicados sobre el Real Oficial, resultando en un recargo del 60%.",
+
+  // BYMA Stocks
+  "ggal.ba":
+    "Grupo Financiero Galicia (GGAL) es uno de los principales bancos privados de la República Argentina. Ofrece servicios financieros estructurados a individuos y empresas.",
+  "ypfd.ba":
+    "YPF (Yacimientos Petrolíferos Fiscales) es la empresa de energía más grande de Argentina, dedicada a la exploración, producción, refinación y venta de petróleo y gas.",
+  "pamp.ba":
+    "Pampa Energía (PAMP) es una de las mayores empresas integradas de electricidad en Argentina, participando en la generación, transmisión y distribución de energía eléctrica.",
+  "bma.ba":
+    "Banco Macro (BMA) es un banco de capitales privados argentinos que opera con una extensa red de sucursales en todo el país, enfocado en el interior de Argentina.",
+  "cepu.ba":
+    "Central Puerto (CEPU) es una de las mayores empresas de generación eléctrica del país, operando plantas térmicas, hidroeléctricas y parques eólicos.",
+  "txar.ba":
+    "Ternium Argentina (TXAR), ex Siderar, es el mayor fabricante de aceros planos de Argentina, fundamental para la industria automotriz, la construcción y el agro.",
+  "alua.ba":
+    "Aluar (ALUA) es la única empresa productora de aluminio primario en Argentina, exportando gran parte de su producción a mercados internacionales.",
+  "cres.ba":
+    "Cresud (CRES) es una de las principales empresas agropecuarias de Argentina, con extensas tierras dedicadas a la producción agrícola y ganadera.",
+  "tgsu2.ba":
+    "Transportadora de Gas del Sur (TGSU2) es la mayor transportadora de gas natural de Argentina, operando el sistema de gasoductos más extenso del país.",
+  "loma.ba":
+    "Loma Negra (LOMA) es la empresa cementera líder en Argentina, siendo un termómetro directo del sector de la construcción y la obra pública.",
 };

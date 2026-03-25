@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
-import Modal from "./Modal";
+import { Modal } from "@/app/components/modals";
 
 interface InfoButtonProps {
   /** Modal title */

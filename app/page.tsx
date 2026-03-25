@@ -1,19 +1,20 @@
-import { DollarSign, Activity, Bitcoin, Clock, Wallet, Coins } from "lucide-react";
+import { DollarSign, Activity, Bitcoin, Clock, Wallet, Coins, TrendingUp } from "lucide-react";
 import { fetchDollarsWithHistory, fetchFullDollarHistory, fetchRiesgoPaisHistory } from "@/lib/api/historical";
 import { fetchAllDollars } from "@/lib/api/dollars";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory, getBandas, fetchBandasHistory } from "@/lib/api/indicators";
 import { fetchCommodities, fetchCommodityHistory } from "@/lib/api/commodities";
 import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
 import { fetchWalletDollars } from "@/lib/api/wallets";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import SectionHeader from "./components/SectionHeader";
-import DollarGrid from "./components/DollarGrid";
-import IndicatorsStrip from "./components/IndicatorsStrip";
-import BandasIndicator from "./components/BandasIndicator";
-import MarketTicker from "./components/MarketTicker";
+import { getArgentineStocks } from "@/lib/api/stocks";
+import { Navbar } from "@/app/components/layout";
+import { Footer } from "@/app/components/layout";
+import { SectionHeader } from "@/app/components/layout";
+import { DollarGrid } from "@/app/components/dashboard";
+import { IndicatorsStrip } from "@/app/components/dashboard";
+import { BandasIndicator } from "@/app/components/dashboard";
+import { MarketTicker } from "@/app/components/layout";
 import CryptoStrip from "./components/CryptoStrip";
-
+import { StockGrid } from "@/app/components/dashboard";
 
 export const revalidate = 0;
 
@@ -49,6 +50,7 @@ export default async function Home() {
     realHistory,
     realBlueHistory,
     realTarjetaHistory,
+    stocks,
   ] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchRiesgoPais(),
@@ -76,6 +78,7 @@ export default async function Home() {
     fetchFullDollarHistory("real"),
     fetchFullDollarHistory("realblue"),
     fetchFullDollarHistory("realtarjeta"),
+    getArgentineStocks(),
   ]);
 
   // ---------------------------------------------------------------------------
@@ -167,12 +170,13 @@ export default async function Home() {
         variations={Object.fromEntries(
           dollars.map((d) => [d.rate.casa, d.variacion])
         )}
+        stocks={stocks}
       />
       <Navbar />
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         {/* Divisas section */}
-        <section className="mb-8">
+        <section id="divisas" className="mb-8">
           <div className="mb-4 flex items-center justify-between">
             <SectionHeader title="Divisas" icon={DollarSign} />
             {updateTime && (
@@ -190,7 +194,7 @@ export default async function Home() {
 
         {/* Billeteras Virtuales section */}
         {enrichedWalletDollars.length > 0 && (
-          <section className="mb-8">
+          <section id="billeteras" className="mb-8">
             <div className="mb-4">
               <SectionHeader title="Dólares Billeteras Virtuales" icon={Wallet} />
             </div>
@@ -208,7 +212,7 @@ export default async function Home() {
         )}
 
         {/* Indicadores section */}
-        <section className="mb-8">
+        <section id="indicadores" className="mb-8">
           <div className="mb-4">
             <SectionHeader title="Indicadores" icon={Activity} />
           </div>
@@ -229,6 +233,18 @@ export default async function Home() {
               <BandasIndicator bandas={bandas} cotizacionActual={cotizacionActual} history={bandasHistory} updateTime={latestUpdate} />
             </div>
           </div>
+        </section>
+
+        {/* Acciones Argentinas section */}
+        <section id="acciones" className="mb-8">
+          <div className="mb-4">
+            <SectionHeader 
+              title="Acciones Argentinas" 
+              icon={TrendingUp} 
+              subtitle="BYMA · Mercado local · Precios en ARS" 
+            />
+          </div>
+          <StockGrid stocks={stocks} />
         </section>
 
         {/* Criptomonedas section */}

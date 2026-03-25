@@ -16,9 +16,9 @@ import type {
   DollarHistoryEntry,
   RiesgoPaisHistoryEntry,
   InflacionMensual,
-  HistoryRange,
   BandaHistoryEntry,
   CryptoHistoryEntry,
+  StockHistoryEntry,
 } from "@/lib/types";
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { computeMetrics } from "@/lib/formatters/metrics";
@@ -67,6 +67,13 @@ interface CryptoDetailProps {
   definition: string;
 }
 
+interface StockDetailProps {
+  kind: "stock";
+  data: StockHistoryEntry[];
+  label: string;
+  definition: string;
+}
+
 interface BandasDetailProps {
   kind: "bandas";
   data: BandaHistoryEntry[];
@@ -75,7 +82,7 @@ interface BandasDetailProps {
   cotizacionActual?: number;
 }
 
-type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps) & { updateTime?: string };
+type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps | StockDetailProps) & { updateTime?: string };
 
 // ---------------------------------------------------------------------------
 // Range options — different presets for inflation (monthly data)
@@ -101,6 +108,13 @@ const BANDAS_RANGES: RangeOption[] = [
   { value: "6m", label: "6M", days: 180 },
 ];
 
+const STOCK_RANGES: RangeOption[] = [
+  { value: "1m", label: "1M", days: 30 },
+  { value: "3m", label: "3M", days: 90 },
+  { value: "6m", label: "6M", days: 180 },
+  { value: "1y", label: "1A", days: 365 },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -109,8 +123,8 @@ const BANDAS_RANGES: RangeOption[] = [
  * Modal content for indicator detail: definition, spread, chart, and metrics.
  */
 export default function IndicatorDetail(props: IndicatorDetailProps) {
-  const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : DOLLAR_RANGES);
-  const [rangeValue, setRangeValue] = useState(ranges[1].value);
+  const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" ? STOCK_RANGES : DOLLAR_RANGES));
+  const [rangeValue, setRangeValue] = useState(ranges[1]?.value ?? ranges[0].value);
 
   const activeRange = ranges.find((r) => r.value === rangeValue) ?? ranges[1];
 
@@ -175,25 +189,27 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
         <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
           Historico
         </p>
-        <div
-          className="flex gap-1 rounded-lg p-1"
-          style={{ background: "var(--bg-primary)" }}
-        >
-          {ranges.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setRangeValue(opt.value)}
-              className="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              style={{
-                background: rangeValue === opt.value ? "var(--bg-card)" : "transparent",
-                color: rangeValue === opt.value ? "var(--text-primary)" : "var(--text-muted)",
-                boxShadow: rangeValue === opt.value ? "var(--shadow-card)" : "none",
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        {ranges.length > 1 && (
+          <div
+            className="flex gap-1 rounded-lg p-1"
+            style={{ background: "var(--bg-primary)" }}
+          >
+            {ranges.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setRangeValue(opt.value)}
+                className="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                style={{
+                  background: rangeValue === opt.value ? "var(--bg-card)" : "transparent",
+                  color: rangeValue === opt.value ? "var(--text-primary)" : "var(--text-muted)",
+                  boxShadow: rangeValue === opt.value ? "var(--shadow-card)" : "none",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Metric cards */}
@@ -317,8 +333,8 @@ function buildChartData(
       .slice(-count)
       .map((d) => ({ fecha: d.fecha, value: d.venta }));
   }
-  if (props.kind === "riesgo" || props.kind === "commodity" || props.kind === "crypto") {
-    return (props.data as RiesgoPaisHistoryEntry[] | CryptoHistoryEntry[])
+  if (props.kind === "riesgo" || props.kind === "commodity" || props.kind === "crypto" || props.kind === "stock") {
+    return (props.data as RiesgoPaisHistoryEntry[] | CryptoHistoryEntry[] | StockHistoryEntry[])
       .slice(-count)
       .map((d) => ({ fecha: d.fecha, value: d.valor }));
   }
@@ -329,14 +345,14 @@ function buildChartData(
 }
 
 function getValueFormatter(kind: string): (v: number) => string {
-  if (kind === "dollar") return (v) => formatARS(v);
+  if (kind === "dollar" || kind === "stock") return (v) => formatARS(v);
   if (kind === "riesgo") return (v) => `${formatPoints(v)} pts`;
   if (kind === "commodity" || kind === "crypto") return (v) => `US$ ${v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return (v) => formatPercent(v); // inflacion
 }
 
 function getYAxisLabel(kind: string, v: number): string {
-  if (kind === "dollar" || kind === "bandas") return `$${v.toLocaleString("es-AR")}`;
+  if (kind === "dollar" || kind === "bandas" || kind === "stock") return `$${v.toLocaleString("es-AR")}`;
   if (kind === "inflacion") return `${v}%`;
   if (kind === "commodity" || kind === "crypto") return `US$ ${v.toLocaleString("es-AR")}`;
   return v.toLocaleString("es-AR");
@@ -349,8 +365,8 @@ function getStrokeColor(kind: string, isPositive: boolean): string {
   if (kind === "inflacion") {
     return "var(--color-accent)";
   }
-  if (kind === "commodity" || kind === "crypto") {
-    return "var(--color-accent)"; // Use neutral accent color for commodities and crypto since they aren't strictly good/bad
+  if (kind === "commodity" || kind === "crypto" || kind === "stock") {
+    return "var(--color-accent)"; // Use neutral accent color for commodities, crypto, and stocks
   }
   return isPositive ? "var(--color-positive)" : "var(--color-negative)";
 }

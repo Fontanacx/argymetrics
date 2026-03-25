@@ -1,5 +1,5 @@
 import type { CryptoRate, CryptoHistoryEntry } from "../types";
-import { REVALIDATE_CRYPTO, REVALIDATE_HISTORICAL } from "../constants";
+import { REVALIDATE_CRYPTO, REVALIDATE_HISTORICAL } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Crypto API Layer

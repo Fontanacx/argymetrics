@@ -4,9 +4,9 @@ import { formatPoints, formatPercent } from "@/lib/formatters/currency";
 import { formatDateOnly, formatMonthYear } from "@/lib/formatters/date";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
 import type { CommodityQuote } from "@/lib/api/commodities";
-import InfoButton from "./InfoButton";
-import IndicatorDetail from "./IndicatorDetail";
-import SparklineChart from "./SparklineChart";
+import { InfoButton } from "@/app/components/modals";
+import { IndicatorDetail } from "@/app/components/modals";
+import { SparklineChart } from "@/app/components/charts";
 
 interface IndicatorsStripProps {
   riesgoPais: RiesgoPais | null;

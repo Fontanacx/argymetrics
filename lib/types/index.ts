@@ -139,3 +139,58 @@ export interface HistoryMetrics {
   /** Percentage change from first to last entry */
   changePercent: number;
 }
+
+// ---------------------------------------------------------------------------
+// Stocks
+// ---------------------------------------------------------------------------
+
+export interface StockData {
+  symbol: string;           // e.g. "GGAL.BA"
+  name: string;             // e.g. "Grupo Galicia"
+  price: number;            // current price in ARS
+  variation: number | null; // daily % change
+  high: number;
+  low: number;
+  volume: number;
+  history: StockHistoryEntry[]; // last 30 days for sparkline + modal
+  updatedAt: string; // ISO date string of last known update
+}
+
+export interface StockHistoryEntry {
+  fecha: string; // ISO date string "YYYY-MM-DD"
+  valor: number; // closing price
+}
+
+// ---------------------------------------------------------------------------
+// Daily Insights Briefing Types
+// ---------------------------------------------------------------------------
+
+export interface BriefingInput {
+  date: string;                        // today formatted as "lunes 24 de marzo de 2026"
+  blue: { value: number; variation: number | null };
+  oficial: { value: number; variation: number | null };
+  mep: { value: number; variation: number | null };
+  ccl: { value: number; variation: number | null };
+  cripto: { value: number; variation: number | null };
+  brechaBlueOficial: number;           // percentage
+  brechaBlueYesterday: number | null;  // to compare direction
+  riesgoPais: { value: number; weeklyChange: number | null };
+  inflacion: { value: number; date: string };
+  gold: { value: number; variation: number | null };
+  brent: { value: number; variation: number | null };
+  stocks: {
+    symbol: string;
+    name: string;
+    variation: number | null;
+  }[];
+  stocksEnVerde: number;   // count of stocks with positive variation
+  stocksEnRojo: number;    // count of stocks with negative variation
+  mep7dAverage: number | null; // 7-day average of MEP for freelancer comparison
+}
+
+export interface SemaforoItem {
+  label: string;
+  status: "verde" | "amarillo" | "rojo";
+  titulo: string;
+  descripcion: string;
+}

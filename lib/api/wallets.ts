@@ -1,5 +1,5 @@
 import type { DollarWithHistory, DollarRate } from "../types";
-import { CRIPTOYA_BASE } from "../constants";
+import { CRIPTOYA_BASE } from "@/lib/constants";
 
 export async function fetchWalletDollars(): Promise<DollarWithHistory[]> {
   try {

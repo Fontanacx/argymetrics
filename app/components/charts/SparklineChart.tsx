@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis, CartesianGrid } from "recharts";
-import Modal from "./Modal";
+import { Modal } from "@/app/components/modals";
 import { formatShortDate } from "@/lib/formatters/date";
 import { formatPercent, formatPoints } from "@/lib/formatters/currency";
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent";

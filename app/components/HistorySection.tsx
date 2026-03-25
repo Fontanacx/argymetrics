@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Maximize2 } from "lucide-react";
-import Modal from "./Modal";
+import { Modal } from "@/app/components/modals";
 import {
   AreaChart,
   Area,

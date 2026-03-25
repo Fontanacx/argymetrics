@@ -2,10 +2,10 @@ import type { DollarWithHistory, DollarHistoryEntry } from "@/lib/types";
 import { formatARS, formatSpread } from "@/lib/formatters/currency";
 import { CASA_LABELS, WALLET_COLORS } from "@/lib/constants";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
-import VariationBadge from "./VariationBadge";
-import SparklineChart from "./SparklineChart";
-import InfoButton from "./InfoButton";
-import IndicatorDetail from "./IndicatorDetail";
+import { VariationBadge } from "@/app/components/ui";
+import { SparklineChart } from "@/app/components/charts";
+import { InfoButton } from "@/app/components/modals";
+import { IndicatorDetail } from "@/app/components/modals";
 
 interface DollarCardProps {
   dollar: DollarWithHistory;

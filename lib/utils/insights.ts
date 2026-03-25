@@ -6,7 +6,8 @@
 import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry } from "../types";
 import type { CommodityQuote } from "../api/commodities";
 import { formatARS, formatPercent, formatPoints } from "../formatters/currency";
-import { CASA_LABELS } from "../constants";
+import { CASA_LABELS } from "@/lib/constants";
+import type { StockData } from "../types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,7 +31,7 @@ export interface InsightCard {
   sparklineFormatType?: "dollar" | "crypto" | "riesgo" | "inflacion" | "commodity";
 }
 
-export type InsightCategory = "dollars" | "crypto" | "indicators" | "wallets";
+export type InsightCategory = "dollars" | "crypto" | "indicators" | "wallets" | "stocks";
 
 // ---------------------------------------------------------------------------
 // Dollar Insights
@@ -452,6 +453,98 @@ export function computeWalletInsights(wallets: DollarWithHistory[]): InsightCard
 }
 
 // ---------------------------------------------------------------------------
+// Stock Insights
+// ---------------------------------------------------------------------------
+
+/**
+ * Computes insight cards specifically for Argentine Stocks (BYMA).
+ */
+export function computeStockInsights(stocks: StockData[]): InsightCard[] {
+  if (stocks.length === 0) {
+    return [buildFallbackCard("stocks-empty", "Acciones", "Sin datos disponibles")];
+  }
+
+  const cards: InsightCard[] = [];
+  const validStocks = stocks.filter((s) => s.variation !== null);
+
+  if (validStocks.length === 0) {
+    return [buildFallbackCard("stocks-none", "Acciones", "Sin variaciones disponibles")];
+  }
+
+  const gainers = [...validStocks]
+    .filter((s) => (s.variation as number) > 0)
+    .sort((a, b) => Math.abs(b.variation as number) - Math.abs(a.variation as number));
+
+  if (gainers.length > 0) {
+    const top = gainers[0];
+    cards.push({
+      id: "stock-top",
+      label: "Mejor Rendimiento",
+      value: top.symbol.replace(".BA", ""),
+      subtitle: `$${top.price.toLocaleString("es-AR", { minimumFractionDigits: 2 })} · +${(top.variation as number).toFixed(2)}% · vs ayer`,
+      changePercent: top.variation as number,
+      sentiment: "positive",
+      size: "featured",
+      context: "daily",
+      rank: 1,
+      sparklineData: top.history.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "dollar",
+    });
+  }
+
+  const losers = [...validStocks]
+    .filter((s) => (s.variation as number) < 0)
+    .sort((a, b) => Math.abs(b.variation as number) - Math.abs(a.variation as number));
+
+  if (losers.length > 0) {
+    const worst = losers[0];
+    cards.push({
+      id: "stock-worst",
+      label: "Mayor Caída",
+      value: worst.symbol.replace(".BA", ""),
+      subtitle: `$${worst.price.toLocaleString("es-AR", { minimumFractionDigits: 2 })} · ${(worst.variation as number).toFixed(2)}% · vs ayer`,
+      changePercent: worst.variation as number,
+      sentiment: "negative",
+      size: "normal",
+      context: "daily",
+      sparklineData: worst.history.slice(-7) as unknown[],
+      sparklineDataKey: "valor",
+      sparklineFormatType: "dollar",
+    });
+  }
+
+  const positiveCount = gainers.length;
+  const totalCount = validStocks.length;
+  const score = (positiveCount / totalCount) * 100;
+
+  let sentimentLabel: string;
+  let sentimentValue: "positive" | "negative" | "neutral";
+  if (score >= 60) {
+    sentimentLabel = "Alcista";
+    sentimentValue = "positive";
+  } else if (score < 40) {
+    sentimentLabel = "Bajista";
+    sentimentValue = "negative";
+  } else {
+    sentimentLabel = "Neutral";
+    sentimentValue = "neutral";
+  }
+
+  cards.push({
+    id: "stock-sentiment",
+    label: "Tendencia del Panel (BYMA)",
+    value: sentimentLabel,
+    subtitle: `${positiveCount} de ${totalCount} acciones al alza`,
+    sentiment: sentimentValue,
+    size: "normal",
+    context: "daily",
+  });
+
+  return cards.length > 0 ? cards : [buildFallbackCard("stocks-none", "Acciones", "Sin variaciones")];
+}
+
+// ---------------------------------------------------------------------------
 // Narrative Layer
 // ---------------------------------------------------------------------------
 
@@ -491,6 +584,19 @@ export function generateNarrative(category: InsightCategory, cards: InsightCard[
       return `Mercado crypto con ${direction}. ${top.value} es el mejor activo del día.`;
     }
     return "Mercado crypto sin movimientos significativos.";
+  }
+
+  if (category === "stocks") {
+    const top = cards.find((c) => c.id === "stock-top");
+    const sentiment = cards.find((c) => c.id === "stock-sentiment");
+
+    const parts: string[] = [];
+    if (sentiment) parts.push(`Panel de acciones con tendencia ${sentiment.value.toLowerCase()}`);
+    if (top) parts.push(`${top.value} lidera las subidas del día`);
+
+    return parts.length > 0
+      ? `${parts.join(". ")}.`
+      : "Panel de acciones sin movimientos destacables.";
   }
 
   // indicators

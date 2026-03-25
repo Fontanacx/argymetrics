@@ -1,5 +1,5 @@
 import type { DollarWithHistory, DollarHistoryEntry } from "@/lib/types";
-import DollarCard from "./DollarCard";
+import { DollarCard } from "@/app/components/dashboard";
 
 interface DollarGridProps {
   dollars: DollarWithHistory[];

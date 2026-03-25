@@ -3,8 +3,8 @@ import type { BandaCambiaria, BandaHistoryEntry } from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
 import { formatDateOnly } from "@/lib/formatters/date";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
-import InfoButton from "./InfoButton";
-import IndicatorDetail from "./IndicatorDetail";
+import { InfoButton } from "@/app/components/modals";
+import { IndicatorDetail } from "@/app/components/modals";
 
 interface BandasIndicatorProps {
   bandas: BandaCambiaria;

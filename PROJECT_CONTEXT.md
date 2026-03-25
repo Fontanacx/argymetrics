@@ -105,24 +105,37 @@ argymetrics/
 │   ├── conversor/
 │   │   └── page.tsx            # Currency converter page
 │   └── components/
-│       ├── Navbar.tsx           # Sticky nav with glass effect + ThemeToggle
-│       ├── Footer.tsx           # Attribution, disclaimer, creator links
-│       ├── ThemeToggle.tsx      # Light/Dark/System cycle (client)
-│       ├── MarketTicker.tsx     # Bloomberg-style scrolling ticker
-│       ├── SectionHeader.tsx    # Icon + title section dividers
-│       ├── DollarGrid.tsx       # Responsive grid of DollarCards
-│       ├── DollarCard.tsx       # Single dollar card (price, sparkline, variation)
-│       ├── SparklineChart.tsx   # 7-day mini line chart (client, recharts)
-│       ├── VariationBadge.tsx   # Colored ▲/▼ badge
-│       ├── IndicatorsStrip.tsx  # 4-card strip: Riesgo, Inflación, Oro, Petróleo
-│       ├── BandasIndicator.tsx  # BCRA floor/ceiling visual bar
-│       ├── InfoButton.tsx       # ⓘ button that opens a Modal (client)
-│       ├── Modal.tsx            # Reusable modal with backdrop + Escape (client)
-│       ├── IndicatorDetail.tsx  # Modal content: definition, chart, metrics (client)
-│       ├── CurrencyConverter.tsx # ARS ↔ dollar converter (client)
-│       ├── DollarGridSkeleton.tsx
-│       ├── IndicatorsStripSkeleton.tsx
-│       └── BandasIndicatorSkeleton.tsx
+│       ├── layout/
+│       │   ├── Navbar.tsx
+│       │   ├── Footer.tsx
+│       │   ├── MarketTicker.tsx
+│       │   ├── SectionHeader.tsx
+│       │   └── index.ts
+│       ├── dashboard/
+│       │   ├── DollarGrid.tsx
+│       │   ├── DollarCard.tsx
+│       │   ├── IndicatorsStrip.tsx
+│       │   ├── BandasIndicator.tsx
+│       │   ├── StockGrid.tsx
+│       │   ├── StockCard.tsx
+│       │   └── index.ts
+│       ├── modals/
+│       │   ├── Modal.tsx
+│       │   ├── InfoButton.tsx
+│       │   ├── IndicatorDetail.tsx
+│       │   └── index.ts
+│       ├── charts/
+│       │   ├── SparklineChart.tsx
+│       │   └── index.ts
+│       ├── ui/
+│       │   ├── VariationBadge.tsx
+│       │   ├── DollarGridSkeleton.tsx
+│       │   ├── IndicatorsStripSkeleton.tsx
+│       │   ├── BandasIndicatorSkeleton.tsx
+│       │   └── index.ts
+│       └── conversor/
+│           ├── CurrencyConverter.tsx
+│           └── index.ts
 ├── lib/
 │   ├── types/
 │   │   └── index.ts             # All TypeScript interfaces & types
@@ -135,8 +148,11 @@ argymetrics/
 │   │   ├── currency.ts          # formatARS, formatPercent, formatPoints, formatSpread
 │   │   ├── date.ts              # formatRelativeTime, formatShortDate, formatMonthYear, formatDateOnly
 │   │   └── metrics.ts           # computeMetrics (high, low, avg, change%)
-│   ├── constants.ts             # API URLs, revalidation intervals, DISPLAYED_CASAS, BANDAS, CASA_LABELS
 │   └── constants/
+│       ├── api.ts
+│       ├── display.ts
+│       ├── bandas.ts
+│       ├── index.ts
 │       └── definitions.ts       # Financial definitions for info modals
 ├── public/                      # Static assets
 ├── package.json

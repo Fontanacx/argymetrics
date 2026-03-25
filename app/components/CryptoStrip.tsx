@@ -1,9 +1,9 @@
 import { TrendingUp, TrendingDown, Coins } from "lucide-react";
 import type { CryptoRate, CryptoHistoryEntry } from "@/lib/types";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
-import InfoButton from "./InfoButton";
-import IndicatorDetail from "./IndicatorDetail";
-import SparklineChart from "./SparklineChart";
+import { InfoButton } from "@/app/components/modals";
+import { IndicatorDetail } from "@/app/components/modals";
+import { SparklineChart } from "@/app/components/charts";
 
 interface CryptoStripProps {
   cryptos?: Record<string, CryptoRate | null>;

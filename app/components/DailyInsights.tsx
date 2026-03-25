@@ -3,9 +3,10 @@
 import { useState, useMemo } from "react";
 import { TrendingUp, TrendingDown, Minus, Sparkles, DollarSign, Bitcoin, BarChart3, Info, Wallet, type LucideIcon } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianGrid } from "recharts";
-import SparklineChart from "./SparklineChart";
-import Modal from "./Modal";
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry } from "@/lib/types";
+import { SparklineChart } from "@/app/components/charts";
+import { Modal } from "@/app/components/modals";
+import { InsightsDashboard } from "@/app/components/insights";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry, StockData, BriefingInput, SemaforoItem } from "@/lib/types";
 import type { CommodityQuote } from "@/lib/api/commodities";
 import { formatShortDate } from "@/lib/formatters/date";
 import { formatPercent as formatPercentUtil, formatPoints as formatPointsUtil } from "@/lib/formatters/currency";
@@ -16,6 +17,7 @@ import {
   computeIndicatorInsights,
   computeInsightOfTheDay,
   computeWalletInsights,
+  computeStockInsights,
   generateNarrative,
   type InsightCard,
   type InsightCategory,
@@ -39,6 +41,12 @@ interface DailyInsightsProps {
     brent?: { fecha: string; valor: number }[];
   };
   walletDollars?: DollarWithHistory[];
+  stocks?: StockData[];
+  briefing?: {
+    input: BriefingInput;
+    text: string;
+    semaforo: SemaforoItem[];
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -46,16 +54,18 @@ interface DailyInsightsProps {
 // ---------------------------------------------------------------------------
 
 interface TabConfig {
-  key: InsightCategory;
+  key: InsightCategory | "resumen";
   label: string;
   icon: LucideIcon;
 }
 
 const TABS: TabConfig[] = [
+  { key: "resumen", label: "Resumen", icon: Sparkles },
   { key: "dollars", label: "Dólares", icon: DollarSign },
   { key: "crypto", label: "Cripto", icon: Bitcoin },
   { key: "indicators", label: "Indicadores", icon: BarChart3 },
   { key: "wallets", label: "Billeteras", icon: Wallet },
+  { key: "stocks", label: "Acciones", icon: TrendingUp },
 ];
 
 // ---------------------------------------------------------------------------
@@ -75,8 +85,10 @@ export default function DailyInsights({
   commodities,
   indicatorHistory,
   walletDollars = [],
+  stocks = [],
+  briefing,
 }: DailyInsightsProps) {
-  const [activeTab, setActiveTab] = useState<InsightCategory>("dollars");
+  const [activeTab, setActiveTab] = useState<InsightCategory | "resumen">("resumen");
   const [selectedCard, setSelectedCard] = useState<InsightCard | null>(null);
 
   // Compute all insights once via memoization
@@ -88,6 +100,7 @@ export default function DailyInsights({
   );
 
   const walletCards = useMemo(() => computeWalletInsights(walletDollars), [walletDollars]);
+  const stockCards = useMemo(() => computeStockInsights(stocks), [stocks]);
 
   // Active category data
   const categoryMap: Record<InsightCategory, InsightCard[]> = {
@@ -95,9 +108,10 @@ export default function DailyInsights({
     crypto: cryptoCards,
     indicators: indicatorCards,
     wallets: walletCards,
+    stocks: stockCards,
   };
 
-  const activeCards = categoryMap[activeTab];
+  const activeCards = activeTab === "resumen" ? [] : categoryMap[activeTab];
   
   const insightOfTheDay = useMemo(
     () => computeInsightOfTheDay(activeCards),
@@ -105,14 +119,16 @@ export default function DailyInsights({
   );
 
   const narrative = useMemo(
-    () => generateNarrative(activeTab, activeCards),
+    () => activeTab !== "resumen" ? generateNarrative(activeTab as InsightCategory, activeCards) : "",
     [activeTab, activeCards]
   );
+  
+  const isResumen = activeTab === "resumen";
 
   return (
     <div className="space-y-4">
       {/* Insight of the Day — hero card */}
-      {insightOfTheDay && (
+      {insightOfTheDay && !isResumen && (
         <div
           className="insights-hero animate-fade-in rounded-xl border p-5"
           style={{
@@ -218,28 +234,42 @@ export default function DailyInsights({
         })}
       </div>
 
-      {/* Narrative summary */}
-      <p
-        className="animate-fade-in text-sm leading-relaxed"
-        style={{ color: "var(--text-secondary)" }}
-        key={`narrative-${activeTab}`}
-      >
-        {narrative}
-      </p>
+      {isResumen && briefing && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+           <InsightsDashboard 
+             briefingInput={briefing.input}
+             briefingText={briefing.text}
+             semaforoItems={briefing.semaforo}
+           />
+        </div>
+      )}
 
-      {/* Bento grid */}
-      <div
-        className="insights-bento-grid animate-fade-in"
-        key={`grid-${activeTab}`}
-      >
-        {activeCards.map((card) => (
-          <InsightCardView
-            key={card.id}
-            card={card}
-            onCardClick={card.sparklineData && card.sparklineData.length >= 2 ? () => setSelectedCard(card) : undefined}
-          />
-        ))}
-      </div>
+      {/* Narrative summary (classic tabs) */}
+      {!isResumen && (
+        <p
+          className="animate-fade-in text-sm leading-relaxed"
+          style={{ color: "var(--text-secondary)" }}
+          key={`narrative-${activeTab}`}
+        >
+          {narrative}
+        </p>
+      )}
+
+      {/* Bento grid (classic tabs) */}
+      {!isResumen && (
+        <div
+          className="insights-bento-grid animate-fade-in"
+          key={`grid-${activeTab}`}
+        >
+          {activeCards.map((card) => (
+            <InsightCardView
+              key={card.id}
+              card={card}
+              onCardClick={card.sparklineData && card.sparklineData.length >= 2 ? () => setSelectedCard(card) : undefined}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Detail Modal */}
       <InsightDetailModal

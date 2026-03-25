@@ -5,7 +5,7 @@ import {
   REVALIDATE_RIESGO_PAIS,
   REVALIDATE_INFLACION,
   BANDAS,
-} from "../constants";
+} from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // CriptoYa raw response (internal — not exported)

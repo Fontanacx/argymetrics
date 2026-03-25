@@ -1,5 +1,5 @@
 import type { DollarRate, DollarCasa } from "../types";
-import { DOLARAPI_BASE, REVALIDATE_DOLLARS, DISPLAYED_CASAS } from "../constants";
+import { DOLARAPI_BASE, REVALIDATE_DOLLARS, DISPLAYED_CASAS } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Fetch all dollar rates from DolarAPI

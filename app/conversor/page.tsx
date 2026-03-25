@@ -1,10 +1,10 @@
 import { fetchDollarsWithHistory } from "@/lib/api/historical";
 import { fetchWalletDollars } from "@/lib/api/wallets";
 import type { DollarRate } from "@/lib/types";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import CurrencyConverter from "../components/CurrencyConverter";
-import SectionHeader from "../components/SectionHeader";
+import { Navbar } from "@/app/components/layout";
+import { Footer } from "@/app/components/layout";
+import { CurrencyConverter } from "@/app/components/conversor";
+import { SectionHeader } from "@/app/components/layout";
 import { ArrowLeftRight } from "lucide-react";
 
 export const metadata = {

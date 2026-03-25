@@ -1,0 +1,36 @@
+import type { DollarCasa } from "../types";
+
+export const DISPLAYED_CASAS: DollarCasa[] = [
+  "oficial", "blue", "bolsa", "contadoconliqui", "cripto",
+  "tarjeta", "euro", "euroblue", "eurotarjeta",
+  "real", "realblue", "realtarjeta",
+];
+
+export const CASA_LABELS: Record<DollarCasa, string> = {
+  oficial: "Dolar Oficial", blue: "Dolar Blue", bolsa: "Dolar MEP",
+  contadoconliqui: "Dolar CCL", cripto: "Dolar Cripto / USDT",
+  mayorista: "Dolar Mayorista", tarjeta: "Dólar Tarjeta",
+  euro: "Euro Oficial", euroblue: "Euro Blue", eurotarjeta: "Euro Tarjeta",
+  astropay: "AstroPay", cocos: "Cocos Crypto", lemoncash: "Lemon Cash",
+  belo: "Belo", buenbit: "Buenbit",
+  real: "Real Oficial", realblue: "Real Blue", realtarjeta: "Real Tarjeta",
+};
+
+export const WALLET_COLORS: Record<string, string> = {
+  astropay: "#d61a21", cocos: "#00a2ff", lemoncash: "#00e550",
+  belo: "#00d789", buenbit: "#f178b6",
+};
+
+export const HISTORY_DAYS = 7;
+
+export const STOCK_TICKERS = [
+  'GGAL.BA', 'YPFD.BA', 'PAMP.BA', 'BMA.BA', 'CEPU.BA',
+  'TXAR.BA', 'ALUA.BA', 'CRES.BA', 'TGSU2.BA', 'LOMA.BA'
+];
+
+export const STOCK_NAMES: Record<string, string> = {
+  'GGAL.BA': 'Grupo Galicia', 'YPFD.BA': 'YPF', 'PAMP.BA': 'Pampa Energía',
+  'BMA.BA': 'Banco Macro', 'CEPU.BA': 'Central Puerto', 'TXAR.BA': 'Ternium Argentina',
+  'ALUA.BA': 'Aluar', 'CRES.BA': 'Cresud', 'TGSU2.BA': 'Transportadora Gas del Sur',
+  'LOMA.BA': 'Loma Negra'
+};

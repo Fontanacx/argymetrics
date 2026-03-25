@@ -1,10 +1,10 @@
 import { DollarSign, Activity } from "lucide-react";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import SectionHeader from "./components/SectionHeader";
-import DollarGridSkeleton from "./components/DollarGridSkeleton";
-import IndicatorsStripSkeleton from "./components/IndicatorsStripSkeleton";
-import BandasIndicatorSkeleton from "./components/BandasIndicatorSkeleton";
+import { Navbar } from "@/app/components/layout";
+import { Footer } from "@/app/components/layout";
+import { SectionHeader } from "@/app/components/layout";
+import { DollarGridSkeleton } from "@/app/components/ui";
+import { IndicatorsStripSkeleton } from "@/app/components/ui";
+import { BandasIndicatorSkeleton } from "@/app/components/ui";
 
 /**
  * Next.js loading UI. Automatically shown by the framework inside a

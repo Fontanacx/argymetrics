@@ -1,4 +1,4 @@
-import type { DollarRate, RiesgoPais, CryptoRate } from "@/lib/types";
+import type { DollarRate, RiesgoPais, CryptoRate, StockData } from "@/lib/types";
 import { formatARS, formatPoints } from "@/lib/formatters/currency";
 import type { CommodityQuote } from "@/lib/api/commodities";
 
@@ -32,6 +32,7 @@ interface MarketTickerProps {
   commodities: CommodityQuote[];
   cryptos?: Record<string, CryptoRate | null>;
   variations: Record<string, number | null>;
+  stocks?: StockData[];
 }
 
 // ---------------------------------------------------------------------------
@@ -43,7 +44,7 @@ interface MarketTickerProps {
  * Uses inline styles to guarantee render fidelity (no CSS class dependency).
  * Renders APIs: Dollar rates, Riesgo Pais, and Yahoo Finance commodities (Gold/Brent).
  */
-export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, variations }: MarketTickerProps) {
+export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, variations, stocks }: MarketTickerProps) {
   // 1. Add API dollar rates
   const items: TickerItem[] = rates.map((rate) => ({
     label: TICKER_LABELS[rate.casa] ?? rate.nombre.toUpperCase(),
@@ -94,6 +95,17 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
         change: cryptos.eth.variacion,
       });
     }
+  }
+
+  // 5. Add Stocks
+  if (stocks) {
+    stocks.forEach((stock) => {
+      items.push({
+        label: stock.symbol.replace(".BA", ""),
+        value: formatARS(stock.price),
+        change: stock.variation,
+      });
+    });
   }
 
   // Render items twice for seamless infinite scroll
