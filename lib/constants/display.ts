@@ -1,7 +1,7 @@
 import type { DollarCasa } from "../types";
 
 export const DISPLAYED_CASAS: DollarCasa[] = [
-  "oficial", "blue", "bolsa", "contadoconliqui", "cripto",
+  "oficial", "mayorista", "blue", "bolsa", "contadoconliqui", "cripto",
   "tarjeta", "euro", "euroblue", "eurotarjeta",
   "real", "realblue", "realtarjeta",
 ];

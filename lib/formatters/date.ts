@@ -88,3 +88,17 @@ export function formatDateOnly(dateStr: string): string {
     timeZone: "America/Argentina/Buenos_Aires",
   }).format(date);
 }
+
+/**
+ * Formats a date/time string as HH:MM (24-hour, es-AR, Argentine timezone).
+ * Used for the 24H chart X-axis in the IndicatorDetail modal.
+ * Example: "2026-03-26T14:30:00" → "14:30"
+ */
+export function formatTime(dateStr: string): string {
+  return new Intl.DateTimeFormat("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date(dateStr));
+}

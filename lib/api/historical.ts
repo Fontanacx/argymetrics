@@ -209,6 +209,47 @@ function computeVariation(history: DollarHistoryEntry[]): number | null {
   return Math.round(variation * 100) / 100;
 }
 
+/**
+ * Computes the daily variation by comparing the live rate (from DolarAPI)
+ * against the last available historical close (from ArgentinaDatos).
+ *
+ * This is more reliable than computeVariation() because ArgentinaDatos
+ * sometimes lags and hasn't published today's entry yet. By using the
+ * live rate we know the badge will always show during market hours.
+ *
+ * Rules:
+ * - If the last history entry's date equals today's date, we treat it as an
+ *   intraday partial and compare the live rate against the *previous* entry.
+ * - Falls back to computeVariation(history) when the live rate is unavailable.
+ *
+ * @param rate    - The current live rate from DolarAPI.
+ * @param history - Historical entries sorted ascending by date.
+ * @returns Percentage change (e.g. -0.7 means -0.7%), or null if unavailable.
+ */
+function computeVariationWithLive(
+  rate: DollarRate,
+  history: DollarHistoryEntry[]
+): number | null {
+  if (rate.venta > 0 && history.length >= 1) {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastEntry = history[history.length - 1];
+    // If today's entry is already in history, compare against day before it
+    const refEntry =
+      lastEntry.fecha === today && history.length >= 2
+        ? history[history.length - 2]
+        : lastEntry;
+
+    if (typeof refEntry.venta === "number" && refEntry.venta > 0) {
+      const variation = ((rate.venta - refEntry.venta) / refEntry.venta) * 100;
+      if (Number.isFinite(variation)) {
+        return Math.round(variation * 100) / 100;
+      }
+    }
+  }
+  // Fallback: pure historical comparison
+  return computeVariation(history);
+}
+
 // ---------------------------------------------------------------------------
 // Fetch all displayed dollars with their histories (dashboard)
 // ---------------------------------------------------------------------------
@@ -240,7 +281,7 @@ export async function fetchDollarsWithHistory(): Promise<DollarWithHistory[]> {
     return {
       rate,
       history,
-      variacion: computeVariation(history),
+      variacion: computeVariationWithLive(rate, history),
     };
   });
 }

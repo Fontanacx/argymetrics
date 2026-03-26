@@ -63,8 +63,6 @@ export interface DollarWithHistory {
 export interface RiesgoPais {
   fecha: string;
   valor: number;
-  /** Data origin: "criptoya" = live (~2 min lag), "argentinadatos" = fallback (~24-48 h lag) */
-  source?: "criptoya" | "argentinadatos";
 }
 
 export interface InflacionMensual {
@@ -197,3 +195,4 @@ export interface SemaforoItem {
   titulo: string;
   descripcion: string;
 }
+

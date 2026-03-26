@@ -3,6 +3,9 @@
  */
 
 export const INDICATOR_DEFINITIONS: Record<string, string> = {
+  mayorista:
+    "El Dólar Mayorista es el tipo de cambio operado en el mercado interbancario para transacciones de gran volumen entre el BCRA, bancos y grandes empresas exportadoras e importadoras. Es la cotización oficial más cercana al precio de mercado dentro del sistema regulado y sirve de referencia para calcular el tipo de cambio real multilateral (TCRM). No está disponible para el público general ni para operaciones minoristas.",
+
   blue:
     "El dolar blue es la cotizacion informal del dolar estadounidense en Argentina. " +
     "Opera fuera del mercado regulado y refleja la oferta y demanda real sin restricciones cambiarias. " +

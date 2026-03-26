@@ -1,69 +1,24 @@
 import type { RiesgoPais, InflacionMensual, BandaCambiaria, BandaHistoryEntry } from "../types";
 import {
   ARGENTINADATOS_BASE,
-  CRIPTOYA_RP,
   REVALIDATE_RIESGO_PAIS,
   REVALIDATE_INFLACION,
   BANDAS,
 } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
-// CriptoYa raw response (internal — not exported)
-// ---------------------------------------------------------------------------
-
-interface CriptoYaRPResponse {
-  valor: number;
-  time: number; // Unix timestamp in seconds
-}
-
-// ---------------------------------------------------------------------------
 // Riesgo Pais
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches the latest country risk (EMBI) value.
+ * Obtiene el último valor del riesgo país (EMBI+ Argentina) desde ArgentinaDatos.
  *
- * Primary: CriptoYa `/riesgo-pais` — updates every ~5 minutes.
- * Fallback: ArgentinaDatos `/v1/finanzas/indices/riesgo-pais/ultimo` — may be
- * 24-48 hours stale but is reliable as a fallback.
+ * Fuente: ArgentinaDatos `/v1/finanzas/indices/riesgo-pais/ultimo`
+ * Cadencia de revalidación: cada 120 segundos.
  *
- * @returns The latest RiesgoPais entry, or `null` on complete failure.
+ * @returns El último dato de RiesgoPais, o `null` si falla la consulta.
  */
 export async function fetchRiesgoPais(): Promise<RiesgoPais | null> {
-  // 1. Primary: CriptoYa (real-time, ~5 min cadence)
-  try {
-    const res = await fetch(CRIPTOYA_RP, {
-      next: { revalidate: REVALIDATE_RIESGO_PAIS },
-    });
-
-    if (res.ok) {
-      const data: unknown = await res.json();
-
-      if (
-        data !== null &&
-        typeof data === "object" &&
-        "valor" in data &&
-        "time" in data &&
-        typeof (data as CriptoYaRPResponse).valor === "number" &&
-        typeof (data as CriptoYaRPResponse).time === "number"
-      ) {
-        const { valor, time } = data as CriptoYaRPResponse;
-        return {
-          valor,
-          fecha: new Date(time * 1000).toISOString(),
-          source: "criptoya",
-        };
-      }
-
-      console.warn("[fetchRiesgoPais] CriptoYa response shape unexpected:", data);
-    } else {
-      console.warn(`[fetchRiesgoPais] CriptoYa HTTP ${res.status}, falling back to ArgentinaDatos`);
-    }
-  } catch (primaryError) {
-    console.warn("[fetchRiesgoPais] CriptoYa fetch failed, falling back to ArgentinaDatos:", primaryError);
-  }
-
-  // 2. Fallback: ArgentinaDatos (may be stale by 24-48 h)
   try {
     const res = await fetch(
       `${ARGENTINADATOS_BASE}/v1/finanzas/indices/riesgo-pais/ultimo`,
@@ -85,13 +40,13 @@ export async function fetchRiesgoPais(): Promise<RiesgoPais | null> {
       typeof (data as RiesgoPais).valor === "number" &&
       typeof (data as RiesgoPais).fecha === "string"
     ) {
-      return { ...(data as RiesgoPais), source: "argentinadatos" };
+      return data as RiesgoPais;
     }
 
-    console.error("[fetchRiesgoPais] ArgentinaDatos unexpected shape:", data);
+    console.error("[fetchRiesgoPais] ArgentinaDatos: respuesta con formato inesperado:", data);
     return null;
-  } catch (fallbackError) {
-    console.error("[fetchRiesgoPais] ArgentinaDatos network error:", fallbackError);
+  } catch (error) {
+    console.error("[fetchRiesgoPais] ArgentinaDatos: error de red:", error);
     return null;
   }
 }

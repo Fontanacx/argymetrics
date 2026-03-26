@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 import type {
   DollarHistoryEntry,
@@ -91,6 +92,7 @@ type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDe
 type RangeOption = { value: string; label: string; days: number };
 
 const DOLLAR_RANGES: RangeOption[] = [
+  { value: "24h", label: "24H", days: 2 },
   { value: "7d", label: "7D", days: 7 },
   { value: "30d", label: "30D", days: 30 },
   { value: "90d", label: "90D", days: 90 },
@@ -124,9 +126,11 @@ const STOCK_RANGES: RangeOption[] = [
  */
 export default function IndicatorDetail(props: IndicatorDetailProps) {
   const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" ? STOCK_RANGES : DOLLAR_RANGES));
-  const [rangeValue, setRangeValue] = useState(ranges[1]?.value ?? ranges[0].value);
+  // Dollar charts default to 24H tab; all others default to the second option (index 1)
+  const defaultRange = props.kind === "dollar" ? ranges[0].value : (ranges[1]?.value ?? ranges[0].value);
+  const [rangeValue, setRangeValue] = useState(defaultRange);
 
-  const activeRange = ranges.find((r) => r.value === rangeValue) ?? ranges[1];
+  const activeRange = ranges.find((r) => r.value === rangeValue) ?? ranges[0];
 
   // Build normalized chart data
   const chartData = buildChartData(props, activeRange.days);
@@ -134,14 +138,26 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
   const metrics = props.kind !== "bandas" ? computeMetrics(values) : null;
 
   const formatValue = getValueFormatter(props.kind);
-  const formatLabel = props.kind === "inflacion"
-    ? (v: string) => formatMonthYear(v)
-    : (v: string) => formatShortDate(v);
+  const marketStatus = getMarketStatus(props.kind);
+
+  // Previous close — only for dollar charts, computed once per render
+  const previousClose: number | null = (() => {
+    if (props.kind !== "dollar" || props.data.length < 2) return null;
+    const data = props.data as DollarHistoryEntry[];
+    // "Operando" means market is currently open → compare live rate vs second-to-last entry
+    const isOpen = marketStatus.text === "Operando";
+    return isOpen ? data[data.length - 2].venta : data[data.length - 1].venta;
+  })();
+
+  // X-axis formatter: date-based for all ranges (data is daily, not intraday)
+  const formatLabel =
+    props.kind === "inflacion"
+      ? (v: string) => formatMonthYear(v)
+      : (v: string) => formatShortDate(v);
 
   // Color logic
   const isPositive = metrics ? metrics.changePercent >= 0 : true;
   const strokeColor = props.kind === "bandas" ? "var(--color-accent)" : getStrokeColor(props.kind, isPositive);
-  const marketStatus = getMarketStatus(props.kind);
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -219,6 +235,25 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
         <MetricCards metrics={metrics} formatValue={formatValue} kind={props.kind} />
       ) : null}
 
+      {/* Cierre anterior card — dollar indicators only */}
+      {props.kind === "dollar" && previousClose !== null && (
+        <div
+          className="rounded-lg border px-4 py-3 flex items-center justify-between"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}
+        >
+          <div>
+            <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Cierre anterior</p>
+            <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--text-primary)" }}>
+              {formatValue(previousClose)}
+            </p>
+          </div>
+          <div
+            className="w-8 h-px"
+            style={{ borderTop: "2px dashed var(--text-muted)", opacity: 0.6 }}
+          />
+        </div>
+      )}
+
       {/* Chart */}
       {chartData.length < 2 ? (
         <div
@@ -288,15 +323,31 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
                   <Line type="monotone" dataKey="oficial" stroke="var(--text-primary)" strokeWidth={2} dot={false} isAnimationActive={false} />
                 </>
               ) : (
-                <Area
-                  type={props.kind === "inflacion" ? "stepAfter" : "monotone"}
-                  dataKey="value"
-                  stroke={strokeColor}
-                  strokeWidth={2}
-                  fill="url(#modal-gradient)"
-                  dot={false}
-                  isAnimationActive={false}
-                />
+                <>
+                  <Area
+                    type={props.kind === "inflacion" ? "stepAfter" : "monotone"}
+                    dataKey="value"
+                    stroke={strokeColor}
+                    strokeWidth={2}
+                    fill="url(#modal-gradient)"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  {props.kind === "dollar" && previousClose !== null && (
+                    <ReferenceLine
+                      y={previousClose}
+                      stroke="var(--text-muted)"
+                      strokeDasharray="6 4"
+                      strokeWidth={1}
+                      label={{
+                        value: "Cierre ant.",
+                        position: "right",
+                        fill: "var(--text-muted)",
+                        fontSize: 10,
+                      }}
+                    />
+                  )}
+                </>
               )}
             </AreaChart>
           </ResponsiveContainer>

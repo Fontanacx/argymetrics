@@ -1,4 +1,4 @@
-import { DollarSign, Activity, Bitcoin, Clock, Wallet, Coins, TrendingUp } from "lucide-react";
+import { DollarSign, Activity, Clock, Wallet, Coins, TrendingUp, CalendarClock } from "lucide-react";
 import { fetchDollarsWithHistory, fetchFullDollarHistory, fetchRiesgoPaisHistory } from "@/lib/api/historical";
 import { fetchAllDollars } from "@/lib/api/dollars";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory, getBandas, fetchBandasHistory } from "@/lib/api/indicators";
@@ -15,6 +15,7 @@ import { BandasIndicator } from "@/app/components/dashboard";
 import { MarketTicker } from "@/app/components/layout";
 import CryptoStrip from "./components/CryptoStrip";
 import { StockGrid } from "@/app/components/dashboard";
+import { DISPLAYED_CASAS } from "@/lib/constants";
 
 export const revalidate = 0;
 
@@ -29,6 +30,7 @@ export default async function Home() {
     inflacion,
     blueHistory,
     oficialHistory,
+    mayoristaHistory,
     bolsaHistory,
     cclHistory,
     riesgoHistory,
@@ -57,6 +59,7 @@ export default async function Home() {
     fetchInflacion(),
     fetchFullDollarHistory("blue"),
     fetchFullDollarHistory("oficial"),
+    fetchFullDollarHistory("mayorista"),
     fetchFullDollarHistory("bolsa"),
     fetchFullDollarHistory("contadoconliqui"),
     fetchRiesgoPaisHistory(),
@@ -82,8 +85,8 @@ export default async function Home() {
   ]);
 
   // ---------------------------------------------------------------------------
-  // Hybrid sync: merge the live CriptoYa value into the ArgentinaDatos history
-  // so the chart's most-recent point always matches the indicator card.
+  // Sincronizar el valor más reciente con el historial de ArgentinaDatos,
+  // para que el último punto del gráfico coincida siempre con la tarjeta del indicador.
   // ---------------------------------------------------------------------------
   const syncedRiesgoHistory = riesgoPais
     ? (() => {
@@ -112,6 +115,7 @@ export default async function Home() {
   const histories: Record<string, typeof blueHistory> = {
     blue: blueHistory,
     oficial: oficialHistory,
+    mayorista: mayoristaHistory,
     bolsa: bolsaHistory,
     contadoconliqui: cclHistory,
     euro: euroHistory,
@@ -122,6 +126,7 @@ export default async function Home() {
     realblue: realBlueHistory,
     realtarjeta: realTarjetaHistory,
   };
+
 
   // Compute the most recent update timestamp from dollar data
   const latestUpdate = dollars.reduce((latest, d) => {

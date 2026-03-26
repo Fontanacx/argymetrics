@@ -50,11 +50,11 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
           >
             {label}
           </h3>
-          {fullHistory && fullHistory.length > 0 && (
+          {(Boolean(fullHistory?.length) || Boolean(definition)) && (
             <InfoButton title={label}>
               <IndicatorDetail
                 kind="dollar"
-                data={fullHistory}
+                data={fullHistory || []}
                 label={label}
                 definition={definition}
                 spread={spread}
@@ -77,15 +77,17 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
         <div className="flex justify-between items-center text-sm">
           <span className="font-medium" style={{ color: "var(--text-primary)" }}>Compra</span>
           <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
-            {formatARS(rate.venta)}
+            {rate.venta > 0 ? formatARS(rate.venta) : "-"}
           </span>
         </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="font-medium" style={{ color: "var(--text-muted)" }}>Venta</span>
-          <span className="font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
-            {formatARS(rate.compra)}
-          </span>
-        </div>
+        {rate.compra > 0 && (
+          <div className="flex justify-between items-center text-sm">
+            <span className="font-medium" style={{ color: "var(--text-muted)" }}>Venta</span>
+            <span className="font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
+              {rate.compra > 0 ? formatARS(rate.compra) : "-"}
+            </span>
+          </div>
+        )}
       </div>
     </article>
   );
