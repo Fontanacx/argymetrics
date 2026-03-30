@@ -196,3 +196,15 @@ export interface SemaforoItem {
   descripcion: string;
 }
 
+// ---------------------------------------------------------------------------
+// LATAM currency rates (MXN, COP, UYU, PEN) — ARS-denominated
+// ---------------------------------------------------------------------------
+
+export interface LatamCurrencyRate {
+  moneda: string;             // "MXN" | "COP" | "UYU" | "PEN"
+  nombre: string;             // "Peso Mexicano", etc.
+  compra: number;             // buy rate (ARS per 1 unit of foreign currency)
+  venta: number;              // sell rate (ARS per 1 unit of foreign currency)
+  fechaActualizacion: string; // ISO date string
+}
+

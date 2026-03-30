@@ -34,3 +34,24 @@ export const STOCK_NAMES: Record<string, string> = {
   'ALUA.BA': 'Aluar', 'CRES.BA': 'Cresud', 'TGSU2.BA': 'Transportadora Gas del Sur',
   'LOMA.BA': 'Loma Negra'
 };
+
+export const LATAM_LABELS: Record<string, string> = {
+  MXN: "Peso Mexicano",
+  COP: "Peso Colombiano",
+  UYU: "Peso Uruguayo",
+  PEN: "Sol Peruano",
+};
+
+export const LATAM_FLAGS: Record<string, string> = {
+  MXN: "🇲🇽",
+  COP: "🇨🇴",
+  UYU: "🇺🇾",
+  PEN: "🇵🇪",
+};
+
+export const LATAM_SYMBOLS: Record<string, string> = {
+  MXN: "MX$",
+  COP: "COL$",
+  UYU: "UY$",
+  PEN: "S/",
+};

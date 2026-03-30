@@ -2,19 +2,36 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { ArrowDownUp, ChevronDown } from "lucide-react";
-import type { DollarWithHistory } from "@/lib/types";
+import type { DollarWithHistory, LatamCurrencyRate } from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
-import { CASA_LABELS } from "@/lib/constants";
+import { CASA_LABELS, LATAM_FLAGS, LATAM_LABELS, LATAM_SYMBOLS } from "@/lib/constants";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface CurrencyConverterProps {
   dollars: DollarWithHistory[];
+  latamCurrencies: LatamCurrencyRate[];
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+  flag: string;
+  /** When true, renders as a non-interactive section heading, not a button */
+  divider?: boolean;
 }
 
 interface CustomSelectProps {
   value: string;
   onChange: (val: string) => void;
-  options: { value: string; label: string; flag: string }[];
+  options: SelectOption[];
 }
+
+// ---------------------------------------------------------------------------
+// CustomSelect — supports optional divider entries between option groups
+// ---------------------------------------------------------------------------
 
 function CustomSelect({ value, onChange, options }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +47,8 @@ function CustomSelect({ value, onChange, options }: CustomSelectProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find((o) => o.value === value);
+  // Ignore divider entries when looking up the selected label
+  const selectedOption = options.find((o) => o.value === value && !o.divider);
 
   return (
     <div className="relative" ref={containerRef}>
@@ -42,15 +60,15 @@ function CustomSelect({ value, onChange, options }: CustomSelectProps) {
       >
         <span className="text-xl leading-none">{selectedOption?.flag || "🇺🇸"}</span>
         <span>{selectedOption?.label || "Select"}</span>
-        <ChevronDown 
-          size={14} 
-          className={`transition-transform duration-200 mt-[1px] ${isOpen ? "rotate-180" : ""}`} 
-          style={{ color: "var(--text-muted)" }} 
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 mt-[1px] ${isOpen ? "rotate-180" : ""}`}
+          style={{ color: "var(--text-muted)" }}
         />
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="absolute left-0 top-full z-50 mt-3 max-h-64 min-w-[220px] overflow-y-auto rounded-xl border p-1 shadow-2xl"
           style={{
             background: "var(--bg-card)",
@@ -59,30 +77,41 @@ function CustomSelect({ value, onChange, options }: CustomSelectProps) {
           }}
         >
           <div className="flex flex-col gap-1">
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
-                style={{
-                  background: value === opt.value ? "var(--bg-primary)" : "transparent",
-                  color: value === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
-                }}
-                onMouseEnter={(e) => {
-                  if (value !== opt.value) e.currentTarget.style.background = "var(--border-subtle)";
-                }}
-                onMouseLeave={(e) => {
-                  if (value !== opt.value) e.currentTarget.style.background = "transparent";
-                }}
-                type="button"
-              >
-                <span className="text-xl leading-none">{opt.flag}</span>
-                <span className="font-semibold">{opt.label}</span>
-              </button>
-            ))}
+            {options.map((opt, idx) =>
+              opt.divider ? (
+                // Section heading — non-interactive
+                <div
+                  key={`divider-${idx}`}
+                  className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {opt.label}
+                </div>
+              ) : (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
+                  style={{
+                    background: value === opt.value ? "var(--bg-primary)" : "transparent",
+                    color: value === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (value !== opt.value) e.currentTarget.style.background = "var(--border-subtle)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (value !== opt.value) e.currentTarget.style.background = "transparent";
+                  }}
+                  type="button"
+                >
+                  <span className="text-xl leading-none">{opt.flag}</span>
+                  <span className="font-semibold">{opt.label}</span>
+                </button>
+              )
+            )}
           </div>
         </div>
       )}
@@ -90,64 +119,122 @@ function CustomSelect({ value, onChange, options }: CustomSelectProps) {
   );
 }
 
-export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Returns a flag emoji for a given currency casa/code */
+function getFlag(code: string): string {
+  if (code in LATAM_FLAGS) return LATAM_FLAGS[code];
+  if (code.includes("euro")) return "🇪🇺";
+  if (code.includes("real")) return "🇧🇷";
+  return "🇺🇸";
+}
+
+/** Returns the currency symbol shown on the input prefix */
+function getCurrencySymbol(code: string): string {
+  if (code in LATAM_SYMBOLS) return LATAM_SYMBOLS[code];
+  const flag = getFlag(code);
+  if (flag === "🇧🇷") return "R$";
+  if (flag === "🇪🇺") return "€";
+  return "US$";
+}
+
+/** Returns the label shown on the output field (e.g. "USD", "EUR", "MXN") */
+function getCurrencyLabel(code: string): string {
+  if (code in LATAM_LABELS) return code; // "MXN", "COP", etc.
+  const flag = getFlag(code);
+  if (flag === "🇧🇷") return "BRL";
+  if (flag === "🇪🇺") return "EUR";
+  return "USD";
+}
+
+// ---------------------------------------------------------------------------
+// Main Component
+// ---------------------------------------------------------------------------
+
+export default function CurrencyConverter({ dollars, latamCurrencies }: CurrencyConverterProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("blue");
   const [amount, setAmount] = useState<string>("");
   const [mode, setMode] = useState<"venta" | "compra">("venta");
   const [isPesosTop, setIsPesosTop] = useState<boolean>(true);
 
-  // Find the selected rate object
-  const selectedRateObj = dollars.find((d) => d.rate.casa === selectedCurrency);
-  const rateVenta = selectedRateObj?.rate.venta ?? 1; // avoid division by zero
-  const rateCompra = selectedRateObj?.rate.compra ?? 1;
+  // ---------------------------------------------------------------------------
+  // Rate resolution: check dollars first, then latamCurrencies
+  // ---------------------------------------------------------------------------
+  const selectedDollarObj = dollars.find((d) => d.rate.casa === selectedCurrency);
+  const selectedLatamObj = !selectedDollarObj
+    ? latamCurrencies.find((l) => l.moneda === selectedCurrency)
+    : undefined;
 
-  // The rate we actually use depending on the Active Tab
+  const rateVenta = selectedDollarObj?.rate.venta ?? selectedLatamObj?.venta ?? 1;
+  const rateCompra = selectedDollarObj?.rate.compra ?? selectedLatamObj?.compra ?? 1;
   const activeRate = mode === "venta" ? rateVenta : rateCompra;
 
-  // Handle input changes
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/,/g, ".");
-    if (value === "") return setAmount("");
-    if (/^\d*\.?\d*$/.test(value)) setAmount(value);
-  };
+  const fechaActualizacion =
+    selectedDollarObj?.rate.fechaActualizacion ?? selectedLatamObj?.fechaActualizacion ?? null;
 
-  // Provide a flag emoji based on casa
-  const getFlag = (casa: string) => {
-    if (casa.includes("euro")) return "🇪🇺";
-    if (casa.includes("real")) return "🇧🇷";
-    return "🇺🇸";
-  };
-
-  const selectOptions = useMemo(() => {
-    return dollars.map((d) => ({
+  // ---------------------------------------------------------------------------
+  // Build dropdown options: existing dollars + LATAM section divider + LATAM rates
+  // ---------------------------------------------------------------------------
+  const selectOptions = useMemo<SelectOption[]>(() => {
+    const dollarOptions: SelectOption[] = dollars.map((d) => ({
       value: d.rate.casa,
       label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
       flag: getFlag(d.rate.casa),
     }));
-  }, [dollars]);
 
-  // Compute conversion
+    if (latamCurrencies.length === 0) return dollarOptions;
+
+    const divider: SelectOption = {
+      value: "__latam_divider__",
+      label: "Monedas LATAM",
+      flag: "",
+      divider: true,
+    };
+
+    const latamOptions: SelectOption[] = latamCurrencies.map((l) => ({
+      value: l.moneda,
+      label: LATAM_LABELS[l.moneda] || l.nombre,
+      flag: LATAM_FLAGS[l.moneda] || "",
+    }));
+
+    return [...dollarOptions, divider, ...latamOptions];
+  }, [dollars, latamCurrencies]);
+
+  // ---------------------------------------------------------------------------
+  // Input handling
+  // ---------------------------------------------------------------------------
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/,/g, ".");
+    if (value === "") return setAmount("");
+    if (/^\d*\.?\d*$/.test(value)) setAmount(value);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Conversion
+  // ---------------------------------------------------------------------------
   const convertedAmount = useMemo(() => {
     const numAmount = parseFloat(amount || "0");
     if (isNaN(numAmount) || numAmount === 0 || activeRate === 0) return 0;
-
-    if (isPesosTop) {
-      return numAmount / activeRate;
-    } else {
-      return numAmount * activeRate;
-    }
+    return isPesosTop ? numAmount / activeRate : numAmount * activeRate;
   }, [amount, isPesosTop, activeRate]);
 
-  // Compute "Actualizado hace..." string based on the selected rate
-  const updatedAt = selectedRateObj?.rate.fechaActualizacion
+  // ---------------------------------------------------------------------------
+  // Timestamp
+  // ---------------------------------------------------------------------------
+  const updatedAt = fechaActualizacion
     ? new Intl.DateTimeFormat("es-AR", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
         timeZone: "America/Argentina/Buenos_Aires",
-      }).format(new Date(selectedRateObj.rate.fechaActualizacion))
+      }).format(new Date(fechaActualizacion))
     : null;
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
     <div
       className="mx-auto flex max-w-[500px] flex-col rounded-xl p-6 border transition-colors"
@@ -217,14 +304,11 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
             )}
           </div>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold" style={{ color: "var(--text-muted)" }}>
-              {isPesosTop 
-                 ? "$" 
-                 : getFlag(selectedCurrency).includes("🇧🇷") 
-                   ? "R$"
-                   : getFlag(selectedCurrency).includes("🇺🇸") 
-                     ? "US$" 
-                     : "€"}
+            <span
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {isPesosTop ? "$" : getCurrencySymbol(selectedCurrency)}
             </span>
             <input
               type="text"
@@ -236,7 +320,7 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
               style={{
                 background: "var(--bg-primary)",
                 color: "var(--text-primary)",
-                border: "1px solid var(--border-subtle)"
+                border: "1px solid var(--border-subtle)",
               }}
             />
           </div>
@@ -273,13 +357,22 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
               />
             )}
           </div>
-          <div className="relative rounded-lg py-4 pl-4 pr-4 border" style={{ background: "var(--bg-primary)", borderColor: "var(--border-subtle)" }}>
+          <div
+            className="relative rounded-lg py-4 pl-4 pr-4 border"
+            style={{ background: "var(--bg-primary)", borderColor: "var(--border-subtle)" }}
+          >
             <div className="flex items-baseline justify-end gap-1 text-right overflow-hidden">
-              <span className="text-2xl font-bold truncate min-w-0" style={{ color: "var(--text-primary)" }} title={!isPesosTop
-                  ? formatARS(convertedAmount).replace("$", "").trim()
-                  : convertedAmount > 0
-                    ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : "0,00"}>
+              <span
+                className="text-2xl font-bold truncate min-w-0"
+                style={{ color: "var(--text-primary)" }}
+                title={
+                  !isPesosTop
+                    ? formatARS(convertedAmount).replace("$", "").trim()
+                    : convertedAmount > 0
+                      ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : "0,00"
+                }
+              >
                 {!isPesosTop
                   ? formatARS(convertedAmount).replace("$", "").trim()
                   : convertedAmount > 0
@@ -287,13 +380,7 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
                     : "0,00"}
               </span>
               <span className="text-xl font-bold shrink-0" style={{ color: "var(--text-primary)" }}>
-                {!isPesosTop 
-                  ? "(ARS)" 
-                  : getFlag(selectedCurrency).includes("🇧🇷") 
-                    ? "BRL" 
-                    : getFlag(selectedCurrency).includes("🇺🇸") 
-                      ? "USD" 
-                      : "EUR"}
+                {!isPesosTop ? "(ARS)" : getCurrencyLabel(selectedCurrency)}
               </span>
             </div>
             {/* Precio Base Helper */}
@@ -308,10 +395,10 @@ export default function CurrencyConverter({ dollars }: CurrencyConverterProps) {
           <button
             onClick={() => window.location.reload()}
             className="rounded-lg px-8 py-3 text-sm font-bold transition-colors hover:opacity-80 focus:ring-2 focus:outline-none"
-            style={{ 
-              background: "var(--color-accent-light)", 
+            style={{
+              background: "var(--color-accent-light)",
               color: "var(--color-accent)",
-              border: "1px solid var(--color-accent-light)" 
+              border: "1px solid var(--color-accent-light)",
             }}
           >
             Actualizar precios
