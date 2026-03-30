@@ -1,6 +1,7 @@
-import type { DollarRate, RiesgoPais, CryptoRate, StockData } from "@/lib/types";
+import type { DollarRate, RiesgoPais, CryptoRate, StockData, MarketIndex } from "@/lib/types";
 import { formatARS, formatPoints } from "@/lib/formatters/currency";
 import type { CommodityQuote } from "@/lib/api/commodities";
+import { INDEX_NAMES } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Ticker item labels (short Bloomberg-style names)
@@ -33,6 +34,7 @@ interface MarketTickerProps {
   cryptos?: Record<string, CryptoRate | null>;
   variations: Record<string, number | null>;
   stocks?: StockData[];
+  indices?: MarketIndex[];
 }
 
 // ---------------------------------------------------------------------------
@@ -44,7 +46,7 @@ interface MarketTickerProps {
  * Uses inline styles to guarantee render fidelity (no CSS class dependency).
  * Renders APIs: Dollar rates, Riesgo Pais, and Yahoo Finance commodities (Gold/Brent).
  */
-export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, variations, stocks }: MarketTickerProps) {
+export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, variations, stocks, indices }: MarketTickerProps) {
   // 1. Add API dollar rates
   const items: TickerItem[] = rates.map((rate) => ({
     label: TICKER_LABELS[rate.casa] ?? rate.nombre.toUpperCase(),
@@ -104,6 +106,24 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
         label: stock.symbol.replace(".BA", ""),
         value: formatARS(stock.price),
         change: stock.variation,
+      });
+    });
+  }
+
+  // 6. Add Market Indices
+  if (indices) {
+    indices.forEach((idx) => {
+      const formattedValue =
+        idx.currency === "ARS"
+          ? formatARS(idx.value)
+          : new Intl.NumberFormat("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(idx.value) + " pts";
+      items.push({
+        label: (INDEX_NAMES[idx.symbol] || idx.name).toUpperCase(),
+        value: formattedValue,
+        change: idx.variation,
       });
     });
   }

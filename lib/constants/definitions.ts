@@ -132,4 +132,25 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
     "Transportadora de Gas del Sur (TGSU2) es la mayor transportadora de gas natural de Argentina, operando el sistema de gasoductos más extenso del país.",
   "loma.ba":
     "Loma Negra (LOMA) es la empresa cementera líder en Argentina, siendo un termómetro directo del sector de la construcción y la obra pública.",
+
+  // Market Indices
+  "^merv":
+    "El S&P Merval es el principal índice bursátil de Argentina, calculado por BYMA (Bolsas y Mercados Argentinos). " +
+    "Agrupa a las empresas líderes del mercado local ponderadas por capitalización y liquidez. " +
+    "Es el termómetro de referencia del mercado accionario argentino y refleja la confianza de los inversores en la economía del país.",
+
+  "^gspc":
+    "El S&P 500 es el índice bursátil más importante del mundo, compuesto por las 500 empresas de mayor capitalización " +
+    "listadas en las bolsas de Estados Unidos. Es considerado el mejor indicador individual del mercado de renta variable " +
+    "estadounidense y sirve como referencia global para medir el rendimiento del mercado.",
+
+  "^ixic":
+    "El Nasdaq Composite es un índice que incluye a todas las empresas listadas en la bolsa Nasdaq, " +
+    "con fuerte predominancia del sector tecnológico. Incluye gigantes como Apple, Microsoft, Amazon, Google y Meta. " +
+    "Es el principal referente mundial para medir el desempeño del sector tech y de innovación.",
+
+  "^dji":
+    "El Dow Jones Industrial Average (DJIA) es el índice bursátil más antiguo y reconocido de Estados Unidos, creado en 1896. " +
+    "Está compuesto por 30 de las empresas más grandes e influyentes de la economía norteamericana. " +
+    "A diferencia del S&P 500, es un índice ponderado por precio, no por capitalización.",
 };

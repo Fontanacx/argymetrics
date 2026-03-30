@@ -35,11 +35,29 @@ export const STOCK_NAMES: Record<string, string> = {
   'LOMA.BA': 'Loma Negra'
 };
 
+export const INDEX_TICKERS = ["^MERV", "^GSPC", "^IXIC", "^DJI"];
+
+export const INDEX_NAMES: Record<string, string> = {
+  "^MERV": "S&P Merval",
+  "^GSPC": "S&P 500",
+  "^IXIC": "Nasdaq",
+  "^DJI": "Dow Jones",
+};
+
+export const INDEX_CURRENCIES: Record<string, "ARS" | "USD"> = {
+  "^MERV": "ARS",
+  "^GSPC": "USD",
+  "^IXIC": "USD",
+  "^DJI": "USD",
+};
+
 export const LATAM_LABELS: Record<string, string> = {
   MXN: "Peso Mexicano",
   COP: "Peso Colombiano",
   UYU: "Peso Uruguayo",
   PEN: "Sol Peruano",
+  CLP: "Peso Chileno",
+  PYG: "Guaraní Paraguayo",
 };
 
 export const LATAM_FLAGS: Record<string, string> = {
@@ -47,6 +65,8 @@ export const LATAM_FLAGS: Record<string, string> = {
   COP: "🇨🇴",
   UYU: "🇺🇾",
   PEN: "🇵🇪",
+  CLP: "🇨🇱",
+  PYG: "🇵🇾",
 };
 
 export const LATAM_SYMBOLS: Record<string, string> = {
@@ -54,4 +74,6 @@ export const LATAM_SYMBOLS: Record<string, string> = {
   COP: "COL$",
   UYU: "UY$",
   PEN: "S/",
+  CLP: "CLP$",
+  PYG: "₲",
 };

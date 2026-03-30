@@ -160,6 +160,27 @@ export interface StockHistoryEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Market Indices (Merval, S&P 500, Nasdaq, Dow Jones)
+// ---------------------------------------------------------------------------
+
+export interface MarketIndex {
+  symbol: string;           // e.g. "^MERV"
+  name: string;             // e.g. "S&P Merval"
+  value: number;            // current index value in points
+  variation: number | null; // daily % change
+  high: number;             // day high
+  low: number;              // day low
+  currency: "ARS" | "USD";  // display currency
+  history: MarketIndexHistoryEntry[];
+  updatedAt: string;        // ISO date string
+}
+
+export interface MarketIndexHistoryEntry {
+  fecha: string;  // "YYYY-MM-DD"
+  valor: number;  // closing value
+}
+
+// ---------------------------------------------------------------------------
 // Daily Insights Briefing Types
 // ---------------------------------------------------------------------------
 
@@ -197,11 +218,11 @@ export interface SemaforoItem {
 }
 
 // ---------------------------------------------------------------------------
-// LATAM currency rates (MXN, COP, UYU, PEN) — ARS-denominated
+// LATAM currency rates (MXN, COP, UYU, PEN, CLP, PYG) — ARS-denominated
 // ---------------------------------------------------------------------------
 
 export interface LatamCurrencyRate {
-  moneda: string;             // "MXN" | "COP" | "UYU" | "PEN"
+  moneda: string;             // "MXN" | "COP" | "UYU" | "PEN" | "CLP" | "PYG"
   nombre: string;             // "Peso Mexicano", etc.
   compra: number;             // buy rate (ARS per 1 unit of foreign currency)
   venta: number;              // sell rate (ARS per 1 unit of foreign currency)

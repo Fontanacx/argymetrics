@@ -8,3 +8,4 @@ export const REVALIDATE_CRYPTO = 60;
 export const REVALIDATE_INFLACION = 3600;
 export const REVALIDATE_HISTORICAL = 3600;
 export const REVALIDATE_STOCKS = 300;
+export const REVALIDATE_INDICES = 300; // 5 minutes, same as stocks

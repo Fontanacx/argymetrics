@@ -4,3 +4,5 @@ export { default as IndicatorsStrip } from './IndicatorsStrip';
 export { default as BandasIndicator } from './BandasIndicator';
 export { default as StockGrid } from './StockGrid';
 export { default as StockCard } from './StockCard';
+export { default as IndexGrid } from './IndexGrid';
+export { default as IndexCard } from './IndexCard';

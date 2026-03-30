@@ -1,4 +1,4 @@
-import { DollarSign, Activity, Clock, Wallet, Coins, TrendingUp, CalendarClock } from "lucide-react";
+import { DollarSign, Activity, Clock, Wallet, Coins, TrendingUp, BarChart3 } from "lucide-react";
 import { fetchDollarsWithHistory, fetchFullDollarHistory, fetchRiesgoPaisHistory } from "@/lib/api/historical";
 import { fetchAllDollars } from "@/lib/api/dollars";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory, getBandas, fetchBandasHistory } from "@/lib/api/indicators";
@@ -6,6 +6,7 @@ import { fetchCommodities, fetchCommodityHistory } from "@/lib/api/commodities";
 import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
 import { fetchWalletDollars } from "@/lib/api/wallets";
 import { getArgentineStocks } from "@/lib/api/stocks";
+import { getMarketIndices } from "@/lib/api/indices";
 import { Navbar } from "@/app/components/layout";
 import { Footer } from "@/app/components/layout";
 import { SectionHeader } from "@/app/components/layout";
@@ -15,6 +16,7 @@ import { BandasIndicator } from "@/app/components/dashboard";
 import { MarketTicker } from "@/app/components/layout";
 import CryptoStrip from "./components/CryptoStrip";
 import { StockGrid } from "@/app/components/dashboard";
+import { IndexGrid } from "@/app/components/dashboard";
 import { DISPLAYED_CASAS } from "@/lib/constants";
 
 export const revalidate = 0;
@@ -53,6 +55,7 @@ export default async function Home() {
     realBlueHistory,
     realTarjetaHistory,
     stocks,
+    indices,
   ] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchRiesgoPais(),
@@ -82,6 +85,7 @@ export default async function Home() {
     fetchFullDollarHistory("realblue"),
     fetchFullDollarHistory("realtarjeta"),
     getArgentineStocks(),
+    getMarketIndices(),
   ]);
 
   // ---------------------------------------------------------------------------
@@ -176,6 +180,7 @@ export default async function Home() {
           dollars.map((d) => [d.rate.casa, d.variacion])
         )}
         stocks={stocks}
+        indices={indices}
       />
       <Navbar />
 
@@ -250,6 +255,18 @@ export default async function Home() {
             />
           </div>
           <StockGrid stocks={stocks} />
+        </section>
+
+        {/* Índices Bursátiles section */}
+        <section id="indices" className="mb-8">
+          <div className="mb-4">
+            <SectionHeader
+              title="Índices Bursátiles"
+              icon={BarChart3}
+              subtitle="Merval · S&P 500 · Nasdaq · Dow Jones"
+            />
+          </div>
+          <IndexGrid indices={indices} />
         </section>
 
         {/* Criptomonedas section */}

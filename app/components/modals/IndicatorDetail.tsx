@@ -20,6 +20,7 @@ import type {
   BandaHistoryEntry,
   CryptoHistoryEntry,
   StockHistoryEntry,
+  MarketIndexHistoryEntry,
 } from "@/lib/types";
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { computeMetrics } from "@/lib/formatters/metrics";
@@ -75,6 +76,14 @@ interface StockDetailProps {
   definition: string;
 }
 
+interface IndexDetailProps {
+  kind: "index";
+  data: MarketIndexHistoryEntry[];
+  label: string;
+  definition: string;
+  updateTime?: string;
+}
+
 interface BandasDetailProps {
   kind: "bandas";
   data: BandaHistoryEntry[];
@@ -83,7 +92,7 @@ interface BandasDetailProps {
   cotizacionActual?: number;
 }
 
-type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps | StockDetailProps) & { updateTime?: string };
+type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps | StockDetailProps | IndexDetailProps) & { updateTime?: string };
 
 // ---------------------------------------------------------------------------
 // Range options — different presets for inflation (monthly data)
@@ -125,7 +134,7 @@ const STOCK_RANGES: RangeOption[] = [
  * Modal content for indicator detail: definition, spread, chart, and metrics.
  */
 export default function IndicatorDetail(props: IndicatorDetailProps) {
-  const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" ? STOCK_RANGES : DOLLAR_RANGES));
+  const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" || props.kind === "index" ? STOCK_RANGES : DOLLAR_RANGES));
   // Dollar charts default to 24H tab; all others default to the second option (index 1)
   const defaultRange = props.kind === "dollar" ? ranges[0].value : (ranges[1]?.value ?? ranges[0].value);
   const [rangeValue, setRangeValue] = useState(defaultRange);
@@ -140,13 +149,22 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
   const formatValue = getValueFormatter(props.kind);
   const marketStatus = getMarketStatus(props.kind);
 
-  // Previous close — only for dollar charts, computed once per render
+  // Previous close — computed once per render
   const previousClose: number | null = (() => {
-    if (props.kind !== "dollar" || props.data.length < 2) return null;
-    const data = props.data as DollarHistoryEntry[];
-    // "Operando" means market is currently open → compare live rate vs second-to-last entry
+    if (props.data.length < 2) return null;
     const isOpen = marketStatus.text === "Operando";
-    return isOpen ? data[data.length - 2].venta : data[data.length - 1].venta;
+
+    if (props.kind === "dollar") {
+      const data = props.data as DollarHistoryEntry[];
+      return isOpen ? data[data.length - 2].venta : data[data.length - 1].venta;
+    }
+
+    if (props.kind === "stock" || props.kind === "index") {
+      const stockData = props.data as (import("@/lib/types").StockHistoryEntry | import("@/lib/types").MarketIndexHistoryEntry)[];
+      return isOpen ? stockData[stockData.length - 2].valor : stockData[stockData.length - 1].valor;
+    }
+
+    return null;
   })();
 
   // X-axis formatter: date-based for all ranges (data is daily, not intraday)
@@ -235,8 +253,8 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
         <MetricCards metrics={metrics} formatValue={formatValue} kind={props.kind} />
       ) : null}
 
-      {/* Cierre anterior card — dollar indicators only */}
-      {props.kind === "dollar" && previousClose !== null && (
+      {/* Cierre anterior card */}
+      {(props.kind === "dollar" || props.kind === "stock" || props.kind === "index") && previousClose !== null && (
         <div
           className="rounded-lg border px-4 py-3 flex items-center justify-between"
           style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}
@@ -333,7 +351,7 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
                     dot={false}
                     isAnimationActive={false}
                   />
-                  {props.kind === "dollar" && previousClose !== null && (
+                  {(props.kind === "dollar" || props.kind === "stock" || props.kind === "index") && previousClose !== null && (
                     <ReferenceLine
                       y={previousClose}
                       stroke="var(--text-muted)"
@@ -384,8 +402,8 @@ function buildChartData(
       .slice(-count)
       .map((d) => ({ fecha: d.fecha, value: d.venta }));
   }
-  if (props.kind === "riesgo" || props.kind === "commodity" || props.kind === "crypto" || props.kind === "stock") {
-    return (props.data as RiesgoPaisHistoryEntry[] | CryptoHistoryEntry[] | StockHistoryEntry[])
+  if (props.kind === "riesgo" || props.kind === "commodity" || props.kind === "crypto" || props.kind === "stock" || props.kind === "index") {
+    return (props.data as RiesgoPaisHistoryEntry[] | CryptoHistoryEntry[] | StockHistoryEntry[] | MarketIndexHistoryEntry[])
       .slice(-count)
       .map((d) => ({ fecha: d.fecha, value: d.valor }));
   }
@@ -399,6 +417,7 @@ function getValueFormatter(kind: string): (v: number) => string {
   if (kind === "dollar" || kind === "stock") return (v) => formatARS(v);
   if (kind === "riesgo") return (v) => `${formatPoints(v)} pts`;
   if (kind === "commodity" || kind === "crypto") return (v) => `US$ ${v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (kind === "index") return (v) => v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (v) => formatPercent(v); // inflacion
 }
 
@@ -406,6 +425,7 @@ function getYAxisLabel(kind: string, v: number): string {
   if (kind === "dollar" || kind === "bandas" || kind === "stock") return `$${v.toLocaleString("es-AR")}`;
   if (kind === "inflacion") return `${v}%`;
   if (kind === "commodity" || kind === "crypto") return `US$ ${v.toLocaleString("es-AR")}`;
+  if (kind === "index") return v.toLocaleString("es-AR", { maximumFractionDigits: 0 });
   return v.toLocaleString("es-AR");
 }
 
@@ -416,8 +436,8 @@ function getStrokeColor(kind: string, isPositive: boolean): string {
   if (kind === "inflacion") {
     return "var(--color-accent)";
   }
-  if (kind === "commodity" || kind === "crypto" || kind === "stock") {
-    return "var(--color-accent)"; // Use neutral accent color for commodities, crypto, and stocks
+  if (kind === "commodity" || kind === "crypto" || kind === "stock" || kind === "index") {
+    return "var(--color-accent)"; // Use neutral accent color for commodities, crypto, stocks, and indices
   }
   return isPositive ? "var(--color-positive)" : "var(--color-negative)";
 }

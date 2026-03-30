@@ -16,7 +16,7 @@ interface SparklineChartProps {
   label?: string;
   /** Key to extract the value from data. Defaults to 'venta'. */
   dataKey?: string;
-  formatType?: "dollar" | "crypto" | "riesgo" | "inflacion" | "commodity";
+  formatType?: "dollar" | "crypto" | "riesgo" | "inflacion" | "commodity" | "index";
   /** Optional brand color to override standard positive/negative line color */
   strokeColor?: string;
 }
@@ -39,6 +39,7 @@ export default function SparklineChart({
     if (formatType === "riesgo") return `${formatPoints(v)} pts`;
     if (formatType === "inflacion") return formatPercent(v);
     if (formatType === "commodity" || formatType === "crypto") return `US$ ${v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (formatType === "index") return v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     return `$${v.toLocaleString("es-AR")}`; // dollar
   };
 
