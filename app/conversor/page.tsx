@@ -12,6 +12,8 @@ export const metadata = {
   description: "Calculadora de divisas con las cotizaciones en tiempo real del dólar blue, oficial, MEP, CCL y Cripto.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ConversorPage() {
   const [dollars, walletDollars, latamCurrencies] = await Promise.all([
     fetchDollarsWithHistory(),
