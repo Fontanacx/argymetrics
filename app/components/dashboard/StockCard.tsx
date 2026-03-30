@@ -20,29 +20,33 @@ export default function StockCard({ stock }: { stock: StockData }) {
         boxShadow: "var(--shadow-card)",
       }}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-bold tracking-tight uppercase" style={{ color: "var(--text-primary)" }}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="text-sm font-bold tracking-tight uppercase truncate" style={{ color: "var(--text-primary)" }}>
               {symbol.replace(".BA", "")}
             </h3>
             {history && history.length > 0 && (
-              <InfoButton title={symbol}>
-                <IndicatorDetail
-                  kind="stock"
-                  data={history}
-                  label={symbol}
-                  definition={INDICATOR_DEFINITIONS[symbol.toLowerCase()] || "Precio de cierre diario de la acción en el mercado BYMA (Bolsas y Mercados Argentinos), expresado en pesos argentinos (ARS)."}
-                  updateTime={stock.updatedAt}
-                />
-              </InfoButton>
+              <div className="shrink-0 flex items-center">
+                <InfoButton title={symbol}>
+                  <IndicatorDetail
+                    kind="stock"
+                    data={history}
+                    label={symbol}
+                    definition={INDICATOR_DEFINITIONS[symbol.toLowerCase()] || "Precio de cierre diario de la acción en el mercado BYMA (Bolsas y Mercados Argentinos), expresado en pesos argentinos (ARS)."}
+                    updateTime={stock.updatedAt}
+                  />
+                </InfoButton>
+              </div>
             )}
           </div>
-          <span className="text-xs font-medium truncate max-w-[100px]" style={{ color: "var(--text-muted)" }} title={name}>
+          <span className="text-xs font-medium truncate w-full" style={{ color: "var(--text-muted)" }} title={name}>
             {name}
           </span>
         </div>
-        <VariationBadge value={variation} />
+        <div className="shrink-0">
+          <VariationBadge value={variation} />
+        </div>
       </div>
 
       <div className="mt-1 mb-2">
