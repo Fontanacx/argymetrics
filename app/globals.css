@@ -120,6 +120,10 @@
    Base styles
    ========================================================================= */
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -281,4 +285,17 @@ body {
   height: 2px;
   background: linear-gradient(90deg, var(--color-accent), transparent);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* =========================================================================
+   Utility: hide scrollbar (for overflow tab bars etc)
+   ========================================================================= */
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / WebKit */
 }

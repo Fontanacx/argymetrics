@@ -18,6 +18,7 @@ export default function Navbar() {
     { href: "/#acciones", label: "Acciones" },
     { href: "/insights", label: "Resumen" },
     { href: "/conversor", label: "Conversor" },
+    { href: "/legal", label: "Legal" },
   ];
 
   return (
@@ -72,7 +73,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-1.5 rounded-md transition-colors"
-            style={{ color: "var(--text-primary)", background: isMenuOpen ? "var(--bg-modifier-hover)" : "transparent" }}
+            style={{ color: "var(--text-primary)", background: isMenuOpen ? "var(--bg-card-hover)" : "transparent" }}
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -95,7 +96,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               onClick={() => setIsMenuOpen(false)}
-              className="text-sm font-medium py-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-modifier-hover)]"
+              className="text-sm font-medium py-2 px-2 rounded-md transition-colors hover:bg-[var(--bg-card-hover)]"
               style={{ color: "var(--text-primary)" }}
             >
               {link.label}

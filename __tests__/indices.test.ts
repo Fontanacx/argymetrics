@@ -1,4 +1,4 @@
-import { getMarketIndices } from "./indices";
+import { getMarketIndices } from "../lib/api/indices";
 
 async function test() {
   const data = await getMarketIndices();

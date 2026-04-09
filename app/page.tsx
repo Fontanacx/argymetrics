@@ -184,7 +184,7 @@ export default async function Home() {
       />
       <Navbar />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         {/* Divisas section */}
         <section id="divisas" className="mb-8">
           <div className="mb-4 flex items-center justify-between">

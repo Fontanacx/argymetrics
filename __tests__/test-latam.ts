@@ -1,4 +1,4 @@
-import { fetchLatamCurrencies } from "./latam";
+import { fetchLatamCurrencies } from "../lib/api/latam";
 fetchLatamCurrencies().then(res => {
   res.forEach(c => {
     console.log(`1 ${c.moneda} = ${c.compra.toFixed(2)} ARS. | 1000 ${c.moneda} = ${(c.compra * 1000).toFixed(2)} ARS.`);

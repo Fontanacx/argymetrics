@@ -1,5 +1,5 @@
 import type { DollarRate, RiesgoPais, CryptoRate, StockData, MarketIndex } from "@/lib/types";
-import { formatARS, formatPoints } from "@/lib/formatters/currency";
+import { formatARS, formatPoints, formatUSD } from "@/lib/formatters/currency";
 import type { CommodityQuote } from "@/lib/api/commodities";
 import { INDEX_NAMES } from "@/lib/constants";
 
@@ -67,10 +67,7 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
   commodities.forEach((comm) => {
     items.push({
       label: comm.name,
-      value: `US$ ${comm.price.toLocaleString("es-AR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      value: formatUSD(comm.price),
       change: comm.changePercent,
     });
   });
@@ -80,20 +77,14 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
     if (cryptos.btc) {
       items.push({
         label: "BITCOIN",
-        value: `US$ ${cryptos.btc.valor.toLocaleString("es-AR", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
+        value: formatUSD(cryptos.btc.valor),
         change: cryptos.btc.variacion,
       });
     }
     if (cryptos.eth) {
       items.push({
         label: "ETHEREUM",
-        value: `US$ ${cryptos.eth.valor.toLocaleString("es-AR", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
+        value: formatUSD(cryptos.eth.valor),
         change: cryptos.eth.variacion,
       });
     }
@@ -116,10 +107,7 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
       const formattedValue =
         idx.currency === "ARS"
           ? formatARS(idx.value)
-          : new Intl.NumberFormat("es-AR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(idx.value) + " pts";
+          : `${formatUSD(idx.value).replace("US$ ", "")} pts`;
       items.push({
         label: (INDEX_NAMES[idx.symbol] || idx.name).toUpperCase(),
         value: formattedValue,
@@ -184,6 +172,8 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
 
   return (
     <div
+      role="marquee"
+      aria-label="Cotizaciones en tiempo real"
       style={{
         width: "100%",
         overflow: "hidden",

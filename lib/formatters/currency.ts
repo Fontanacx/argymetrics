@@ -68,3 +68,16 @@ export function formatPoints(value: number): string {
 export function formatSpread(compra: number, venta: number): string {
   return arsFormatter.format(Math.abs(venta - compra)).replace(/[\u00A0\u202F]/g, ' ');
 }
+
+const usdFormatter = new Intl.NumberFormat("es-AR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * Formats a USD-denominated value in Argentine locale style.
+ * Example: 3250.75 → "US$ 3.250,75"
+ */
+export function formatUSD(value: number): string {
+  return `US$ ${usdFormatter.format(value).replace(/[\u00A0\u202F]/g, ' ')}`;
+}
