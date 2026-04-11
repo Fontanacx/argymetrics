@@ -11,6 +11,8 @@ import {
   REVALIDATE_HISTORICAL,
   DISPLAYED_CASAS,
   HISTORY_DAYS,
+  EUR_USD_CROSS_RATE,
+  TARJETA_TAX_MULTIPLIER,
 } from "@/lib/constants";
 import { fetchAllDollars } from "./dollars";
 
@@ -85,8 +87,8 @@ async function fetchRealHistory(
     } else if (casa === "realtarjeta") {
       entries = entries.map((e) => ({
         ...e,
-        compra: Number((e.compra * 1.6).toFixed(2)),
-        venta: Number((e.venta * 1.6).toFixed(2)),
+        compra: Number((e.compra * TARJETA_TAX_MULTIPLIER).toFixed(2)),
+        venta: Number((e.venta * TARJETA_TAX_MULTIPLIER).toFixed(2)),
       }));
     }
 
@@ -151,8 +153,9 @@ export async function fetchDollarHistory(
     
     // Synthetically scale Dollar history to generate Euro histories
     if (isEuro) {
-      // Approximate EUR/USD cross rate is 1.086. Euro Tarjeta adds 60% tax.
-      const multiplier = isEuroTarjeta ? 1.086 * 1.6 : 1.086;
+      // EUR_USD_CROSS_RATE approximates the EUR/USD cross rate.
+      // Euro Tarjeta applies the additional tarjeta tax on top.
+      const multiplier = isEuroTarjeta ? EUR_USD_CROSS_RATE * TARJETA_TAX_MULTIPLIER : EUR_USD_CROSS_RATE;
       result = result.map((entry) => ({
         ...entry,
         compra: Number((entry.compra * multiplier).toFixed(2)),
@@ -337,8 +340,9 @@ export async function fetchFullDollarHistory(
 
     // Synthetically scale Dollar history to generate Euro histories
     if (isEuro) {
-      // Approximate EUR/USD cross rate is 1.086. Euro Tarjeta adds 60% tax.
-      const multiplier = isEuroTarjeta ? 1.086 * 1.6 : 1.086;
+      // EUR_USD_CROSS_RATE approximates the EUR/USD cross rate.
+      // Euro Tarjeta applies the additional tarjeta tax on top.
+      const multiplier = isEuroTarjeta ? EUR_USD_CROSS_RATE * TARJETA_TAX_MULTIPLIER : EUR_USD_CROSS_RATE;
       result = result.map((entry) => ({
         ...entry,
         compra: Number((entry.compra * multiplier).toFixed(2)),

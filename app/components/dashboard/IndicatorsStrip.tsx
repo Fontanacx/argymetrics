@@ -1,9 +1,8 @@
 import { AlertTriangle, Percent, Clock, Coins, Droplet, TrendingUp, TrendingDown, Flame } from "lucide-react";
-import type { RiesgoPais, InflacionMensual, RiesgoPaisHistoryEntry } from "@/lib/types";
+import type { RiesgoPais, InflacionMensual, RiesgoPaisHistoryEntry, CommodityQuote } from "@/lib/types";
 import { formatPoints, formatPercent, formatUSD } from "@/lib/formatters/currency";
 import { formatDateOnly, formatMonthYear } from "@/lib/formatters/date";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
-import type { CommodityQuote } from "@/lib/api/commodities";
 import IndicatorCard from "./IndicatorCard";
 
 interface IndicatorsStripProps {

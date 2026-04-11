@@ -1,14 +1,18 @@
-import { DollarSign, Activity } from "lucide-react";
-import { Navbar } from "@/app/components/layout";
-import { Footer } from "@/app/components/layout";
-import { SectionHeader } from "@/app/components/layout";
-import { DollarGridSkeleton } from "@/app/components/ui";
-import { IndicatorsStripSkeleton } from "@/app/components/ui";
-import { BandasIndicatorSkeleton } from "@/app/components/ui";
+import { DollarSign, Activity, TrendingUp, BarChart3, Coins } from "lucide-react";
+import { Navbar, Footer, SectionHeader } from "@/app/components/layout";
+import {
+  DollarGridSkeleton,
+  IndicatorsStripSkeleton,
+  BandasIndicatorSkeleton,
+  StockGridSkeleton,
+  IndexGridSkeleton,
+  CryptoStripSkeleton,
+} from "@/app/components/ui";
 
 /**
  * Next.js loading UI. Automatically shown by the framework inside a
  * Suspense boundary while `page.tsx` awaits its async data.
+ * Mirrors the full page structure to prevent layout shift.
  */
 export default function Loading() {
   return (
@@ -37,6 +41,30 @@ export default function Loading() {
               <BandasIndicatorSkeleton />
             </div>
           </div>
+        </section>
+
+        {/* Acciones Argentinas section skeleton */}
+        <section className="mb-8">
+          <div className="mb-4">
+            <SectionHeader title="Acciones Argentinas" icon={TrendingUp} />
+          </div>
+          <StockGridSkeleton />
+        </section>
+
+        {/* Índices Bursátiles section skeleton */}
+        <section className="mb-8">
+          <div className="mb-4">
+            <SectionHeader title="Índices Bursátiles" icon={BarChart3} />
+          </div>
+          <IndexGridSkeleton />
+        </section>
+
+        {/* Criptomonedas section skeleton */}
+        <section className="mb-8">
+          <div className="mb-4">
+            <SectionHeader title="Criptomonedas" icon={Coins} />
+          </div>
+          <CryptoStripSkeleton />
         </section>
       </main>
 

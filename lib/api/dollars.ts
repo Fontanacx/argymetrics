@@ -1,5 +1,5 @@
 import type { DollarRate, DollarCasa } from "../types";
-import { DOLARAPI_BASE, REVALIDATE_DOLLARS, DISPLAYED_CASAS } from "@/lib/constants";
+import { DOLARAPI_BASE, REVALIDATE_DOLLARS, DISPLAYED_CASAS, EUR_USD_CROSS_RATE, TARJETA_TAX_MULTIPLIER } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Fetch all dollar rates from DolarAPI
@@ -45,8 +45,8 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
         ...euroOficialRaw,
         casa: "eurotarjeta",
         nombre: "Euro Tarjeta",
-        compra: Number((euroOficialRaw.compra * 1.6).toFixed(2)),
-        venta: Number((euroOficialRaw.venta * 1.6).toFixed(2)),
+        compra: Number((euroOficialRaw.compra * TARJETA_TAX_MULTIPLIER).toFixed(2)),
+        venta: Number((euroOficialRaw.venta * TARJETA_TAX_MULTIPLIER).toFixed(2)),
       };
       dolaresData.push(euroTarjetaData);
     }
@@ -59,8 +59,8 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
         ...dolarBlue,
         casa: "euroblue",
         nombre: "Euro Blue",
-        compra: Number((dolarBlue.compra * 1.086).toFixed(2)),
-        venta: Number((dolarBlue.venta * 1.086).toFixed(2)),
+        compra: Number((dolarBlue.compra * EUR_USD_CROSS_RATE).toFixed(2)),
+        venta: Number((dolarBlue.venta * EUR_USD_CROSS_RATE).toFixed(2)),
       });
     }
 
@@ -87,13 +87,13 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
         });
       }
 
-      // Real Tarjeta = Real Oficial × 1.6 (PAIS + Ganancias taxes)
+      // Real Tarjeta = Real Oficial × TARJETA_TAX_MULTIPLIER (PAIS + Ganancias taxes)
       dolaresData.push({
         ...realRaw,
         casa: "realtarjeta",
         nombre: "Real Tarjeta",
-        compra: Number((realRaw.compra * 1.6).toFixed(2)),
-        venta: Number((realRaw.venta * 1.6).toFixed(2)),
+        compra: Number((realRaw.compra * TARJETA_TAX_MULTIPLIER).toFixed(2)),
+        venta: Number((realRaw.venta * TARJETA_TAX_MULTIPLIER).toFixed(2)),
       });
     }
 

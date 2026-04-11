@@ -6,8 +6,7 @@ import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianG
 import { SparklineChart } from "@/app/components/charts";
 import { Modal } from "@/app/components/modals";
 import { InsightsDashboard } from "@/app/components/insights";
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry, StockData, BriefingInput, SemaforoItem } from "@/lib/types";
-import type { CommodityQuote } from "@/lib/api/commodities";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry, StockData, BriefingInput, SemaforoItem, CommodityQuote } from "@/lib/types";
 import { formatShortDate } from "@/lib/formatters/date";
 import { formatPercent as formatPercentUtil, formatPoints as formatPointsUtil } from "@/lib/formatters/currency";
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent";

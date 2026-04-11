@@ -74,21 +74,35 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
 
       {/* Comprá / Vendé rows */}
       <div className="flex flex-col gap-1.5 mt-auto">
-        <div className="flex justify-between items-center text-sm">
-          <span className="font-medium" style={{ color: "var(--text-primary)" }}>Compra</span>
-          <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
-            {rate.compra > 0 ? formatARS(rate.compra) : "-"}
-          </span>
-        </div>
-        {rate.venta > 0 && (
+        {rate.compra > 0 ? (
+          <>
+            {/* Normal two-sided market: show both compra and venta */}
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium" style={{ color: "var(--text-primary)" }}>Compra</span>
+              <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
+                {formatARS(rate.compra)}
+              </span>
+            </div>
+            {rate.venta > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium" style={{ color: "var(--text-muted)" }}>Venta</span>
+                <span className="font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
+                  {formatARS(rate.venta)}
+                </span>
+              </div>
+            )}
+          </>
+        ) : (
+          /* One-sided market (e.g. Dólar Cripto / USDT): only show venta as primary price */
           <div className="flex justify-between items-center text-sm">
-            <span className="font-medium" style={{ color: "var(--text-muted)" }}>Venta</span>
-            <span className="font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
-              {rate.venta > 0 ? formatARS(rate.venta) : "-"}
+            <span className="font-medium" style={{ color: "var(--text-primary)" }}>Precio</span>
+            <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
+              {rate.venta > 0 ? formatARS(rate.venta) : "—"}
             </span>
           </div>
         )}
       </div>
+
     </article>
   );
 }

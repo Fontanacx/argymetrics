@@ -25,7 +25,7 @@ The goal is to provide a **fast, minimal, professional financial data dashboard*
 
 The project uses the following technologies:
 
-* Next.js 14
+* Next.js **16** (App Router)
 * App Router
 * TypeScript
 * React Server Components
@@ -81,23 +81,52 @@ The project follows this structure:
 ```
 lib/
   types/
-    index.ts
+    index.ts        ← Single source of truth for all interfaces
 
   api/
     dollars.ts
     historical.ts
     indicators.ts
+    crypto.ts
+    commodities.ts
+    stocks.ts
+    indices.ts
+    latam.ts
+    wallets.ts
+    yahoo.ts        ← Shared Yahoo Finance helper (fetchYahooChart, parseYahooHistory)
 
   formatters/
     currency.ts
     date.ts
 
-components/
-  DollarCard.tsx
-  DollarGrid.tsx
-  IndicatorsStrip.tsx
-  VariationBadge.tsx
-  BandasIndicator.tsx
+  constants/
+    api.ts          ← API base URLs and revalidation intervals
+    display.ts      ← DISPLAYED_CASAS, CASA_LABELS
+    bandas.ts       ← BANDAS static constants (manual update required)
+
+  utils/
+    insights.ts
+    semaforo.ts
+    briefing-generator.ts
+
+app/
+  components/
+    dashboard/      ← Server components for main dashboard sections
+    layout/         ← Navbar, Footer, MarketTicker, SectionHeader
+    charts/         ← Client chart wrappers (SparklineChart)
+    modals/         ← Modal, InfoButton (client)
+    ui/             ← Skeletons and generic UI primitives
+    insights/       ← InsightsDashboard panel (client)
+    DailyInsights.tsx
+    CryptoStrip.tsx
+    HistorySection.tsx
+  insights/         ← /insights page route
+  conversor/        ← /conversor page route
+  legal/            ← /legal page route
+  page.tsx          ← Main dashboard (Server Component)
+  loading.tsx       ← Next.js loading UI
+  error.tsx         ← Root error boundary
+  layout.tsx        ← Root layout + Metadata
 ```
 
 Rules:

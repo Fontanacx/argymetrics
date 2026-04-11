@@ -3,8 +3,7 @@
 // Computes financial insights from server-provided data for the dashboard.
 // ---------------------------------------------------------------------------
 
-import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry } from "../types";
-import type { CommodityQuote } from "../api/commodities";
+import type { DollarWithHistory, RiesgoPais, InflacionMensual, CryptoRate, CryptoHistoryEntry, RiesgoPaisHistoryEntry, CommodityQuote } from "../types";
 import { formatARS, formatPercent, formatPoints } from "../formatters/currency";
 import { CASA_LABELS } from "@/lib/constants";
 import type { StockData } from "../types";

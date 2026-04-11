@@ -1,15 +1,9 @@
 // ---------------------------------------------------------------------------
 // Commodities API Layer
-// Fetches Gold and Brent Oil prices from public Yahoo Finance endpoints.
+// Fetches Gold, Brent Oil, and Natural Gas prices from Yahoo Finance.
 // ---------------------------------------------------------------------------
-import { fetchYahooChart } from "./yahoo";
-
-export interface CommodityQuote {
-  name: string;
-  price: number;
-  changePercent: number;
-  fecha: string;
-}
+import type { CommodityQuote } from "../types";
+import { fetchYahooChart, parseYahooHistory } from "./yahoo";
 
 /**
  * Fetches a single commodity quote from Yahoo Finance.
@@ -40,7 +34,7 @@ async function fetchYahooQuote(symbol: string, name: string): Promise<CommodityQ
 }
 
 /**
- * Fetches Gold (GC=F) and Brent Crude (BZ=F) quotes.
+ * Fetches Gold (GC=F), Brent Crude (BZ=F), and Natural Gas (NG=F) quotes.
  */
 export async function fetchCommodities(): Promise<CommodityQuote[]> {
   const [gold, brent, gas] = await Promise.all([
@@ -59,8 +53,7 @@ export async function fetchCommodities(): Promise<CommodityQuote[]> {
 
 /**
  * Fetches 1 year of historical daily closing prices for a given commodity symbol.
- * Maps Yahoo Finance's columnar response (array of timestamps, array of prices)
- * into a standard array of { fecha, valor } objects.
+ * Uses the shared `parseYahooHistory` helper for consistent date/value normalisation.
  */
 export async function fetchCommodityHistory(symbol: string): Promise<{ fecha: string; valor: number }[]> {
   const data = await fetchYahooChart(symbol, "1y", 3600);
@@ -72,21 +65,5 @@ export async function fetchCommodityHistory(symbol: string): Promise<{ fecha: st
     return [];
   }
 
-  const timestamps: number[] = result.timestamp;
-  const closes: (number | null)[] = result.indicators.quote[0].close;
-
-  const history: { fecha: string; valor: number }[] = [];
-  
-  for (let i = 0; i < timestamps.length; i++) {
-      const val = closes[i];
-      if (typeof val === "number" && !isNaN(val)) {
-          // Convert UNIX epoch (seconds) to YYYY-MM-DD
-          const dateStr = new Date(timestamps[i] * 1000).toISOString().split('T')[0];
-          // Format to 2 decimal places to keep precision clean
-          const roundedVal = Number(val.toFixed(2));
-          history.push({ fecha: dateStr, valor: roundedVal });
-      }
-  }
-
-  return history;
+  return parseYahooHistory(result.timestamp, result.indicators.quote[0].close);
 }

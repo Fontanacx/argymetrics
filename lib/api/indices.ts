@@ -1,6 +1,6 @@
 import { MarketIndex, MarketIndexHistoryEntry } from "../types";
 import { INDEX_TICKERS, INDEX_NAMES, INDEX_CURRENCIES, REVALIDATE_INDICES } from "@/lib/constants";
-import { fetchYahooChart } from "./yahoo";
+import { fetchYahooChart, parseYahooHistory } from "./yahoo";
 
 export async function getMarketIndices(): Promise<MarketIndex[]> {
   const promises = INDEX_TICKERS.map(async (symbol) => {
@@ -25,8 +25,8 @@ export async function getMarketIndices(): Promise<MarketIndex[]> {
       variation = ((value - meta.previousClose) / meta.previousClose) * 100;
     } else if (result?.indicators?.quote?.[0]?.close) {
       // Fallback: manually calculate from the end of the history array
-      const closes = result.indicators.quote[0].close;
-      const validCloses = closes.filter((c: any): c is number => typeof c === "number" && !isNaN(c));
+      const closes: (number | null)[] = result.indicators.quote[0].close;
+      const validCloses = closes.filter((c): c is number => typeof c === "number" && !isNaN(c));
       if (validCloses.length >= 2) {
         const yesterdayClose = validCloses[validCloses.length - 2];
         if (yesterdayClose > 0) {
@@ -39,18 +39,11 @@ export async function getMarketIndices(): Promise<MarketIndex[]> {
     const low = meta.regularMarketDayLow ?? value;
 
     // Build 1-year daily history
-    const history: MarketIndexHistoryEntry[] = [];
-    if (result?.timestamp && result?.indicators?.quote?.[0]?.close) {
-      const timestamps: number[] = result.timestamp;
-      const closes: (number | null)[] = result.indicators.quote[0].close;
-      for (let i = 0; i < timestamps.length; i++) {
-        const val = closes[i];
-        if (typeof val === "number" && !isNaN(val)) {
-          const dateStr = new Date(timestamps[i] * 1000).toISOString().split("T")[0];
-          history.push({ fecha: dateStr, valor: Number(val.toFixed(2)) });
-        }
-      }
-    }
+    const rawHistory = result?.timestamp && result?.indicators?.quote?.[0]?.close
+      ? parseYahooHistory(result.timestamp, result.indicators.quote[0].close)
+      : [];
+    // MarketIndexHistoryEntry is structurally identical to parseYahooHistory output
+    const history: MarketIndexHistoryEntry[] = rawHistory;
 
     const updatedAt =
       typeof meta.regularMarketTime === "number"

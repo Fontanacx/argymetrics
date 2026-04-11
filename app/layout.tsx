@@ -10,9 +10,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://argymetrics.vercel.app"),
-  title: "ArgyMetrics — Cotizaciones del dolar y datos financieros de Argentina",
+  title: "ArgyMetrics — Cotizaciones del dólar y datos financieros de Argentina",
   description:
-    "Seguimiento en tiempo real del dolar oficial, blue, MEP, CCL, USDT, riesgo pais e inflacion de Argentina. Datos actualizados automaticamente.",
+    "Seguimiento en tiempo real del dólar oficial, blue, MEP, CCL, USDT, riesgo país e inflación de Argentina. Datos actualizados automáticamente.",
   keywords: [
     "dolar blue",
     "dolar oficial",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ArgyMetrics — Datos financieros de Argentina en tiempo real",
     description:
-      "Dolar oficial, blue, MEP, CCL, USDT, riesgo pais e inflacion. Actualizado cada minuto.",
+      "Dólar oficial, blue, MEP, CCL, USDT, riesgo país e inflación. Actualizado cada minuto.",
     type: "website",
     locale: "es_AR",
     siteName: "ArgyMetrics",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ArgyMetrics — Datos financieros de Argentina",
     description:
-      "Cotizaciones del dolar, riesgo pais e inflacion en tiempo real.",
+      "Cotizaciones del dólar, riesgo país e inflación en tiempo real.",
     images: ["/og-image.png"],
   },
   robots: {

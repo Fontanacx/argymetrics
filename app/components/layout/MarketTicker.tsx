@@ -1,6 +1,5 @@
-import type { DollarRate, RiesgoPais, CryptoRate, StockData, MarketIndex } from "@/lib/types";
+import type { DollarRate, RiesgoPais, CryptoRate, StockData, MarketIndex, CommodityQuote } from "@/lib/types";
 import { formatARS, formatPoints, formatUSD } from "@/lib/formatters/currency";
-import type { CommodityQuote } from "@/lib/api/commodities";
 import { INDEX_NAMES } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
@@ -172,8 +171,8 @@ export default function MarketTicker({ rates, riesgoPais, commodities, cryptos, 
 
   return (
     <div
-      role="marquee"
       aria-label="Cotizaciones en tiempo real"
+      aria-live="off"
       style={{
         width: "100%",
         overflow: "hidden",

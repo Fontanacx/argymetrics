@@ -122,9 +122,13 @@ export default async function InsightsPage(props: { searchParams: Promise<{ [key
   
   let brechaBlueYesterday: number | null = null;
   if (isTimeTravel) {
-     const pB = findHistMatch(blueHistory, asOfDate, "venta");
-     const pO = findHistMatch(oficialHistory, asOfDate, "venta");
-     if (pB && pO && pO.val > 0) brechaBlueYesterday = ((pB.val - pO.val) / pO.val) * 100;
+    // Compare against the day *before* asOfDate, not asOfDate itself
+    const yesterday = new Date(asOfDate + "T12:00:00Z");
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    const pB = findHistMatch(blueHistory, yesterdayStr, "venta");
+    const pO = findHistMatch(oficialHistory, yesterdayStr, "venta");
+    if (pB && pO && pO.val > 0) brechaBlueYesterday = ((pB.val - pO.val) / pO.val) * 100;
   } else if (blueHistory.length >= 2 && oficialHistory.length >= 2) {
     const prevBlue = blueHistory[blueHistory.length - 2].venta;
     const prevOficial = oficialHistory[oficialHistory.length - 2].venta;

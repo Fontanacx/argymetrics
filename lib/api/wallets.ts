@@ -1,4 +1,4 @@
-import type { DollarWithHistory, DollarRate } from "../types";
+import type { DollarWithHistory, DollarRate, DollarCasa } from "../types";
 import { CRIPTOYA_BASE } from "@/lib/constants";
 
 export async function fetchWalletDollars(): Promise<DollarWithHistory[]> {
@@ -14,7 +14,7 @@ export async function fetchWalletDollars(): Promise<DollarWithHistory[]> {
 
     const data = await res.json();
     
-    const walletsInfo = [
+    const walletsInfo: { key: string; nombre: string; casa: DollarCasa }[] = [
       { key: "astropay", nombre: "Dólar AstroPay", casa: "astropay" },
       { key: "cocoscrypto", nombre: "Dólar Cocos", casa: "cocos" },
       { key: "lemoncash", nombre: "Dólar Lemon", casa: "lemoncash" },
@@ -30,7 +30,7 @@ export async function fetchWalletDollars(): Promise<DollarWithHistory[]> {
       if (brokerData) {
         const rate: DollarRate = {
           moneda: "USD",
-          casa: info.casa as any,
+          casa: info.casa,
           nombre: info.nombre,
           // ask = exchange sells to user (venta)
           // bid = exchange buys from user (compra)

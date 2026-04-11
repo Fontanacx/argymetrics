@@ -157,10 +157,13 @@ export function getBandas(): BandaCambiaria {
 // ---------------------------------------------------------------------------
 
 /**
- * Generates a mock 6-month historical dataset for the Bandas Cambiarias.
+ * Generates a deterministic 6-month historical dataset for the Bandas Cambiarias.
  * Since there is no robust public API endpoint for historical band values,
  * we simulate the 1% monthly widening (crawling peg) going backwards from
  * the current BANDAS values.
+ *
+ * The oficial line is placed at a fixed 15% of the band width from the floor —
+ * deterministic so ISR cache responses are reproducible across invocations.
  *
  * @returns Array of historical band entries.
  */
@@ -169,34 +172,34 @@ export async function fetchBandasHistory(): Promise<BandaHistoryEntry[]> {
   const DAYS = 180; // 6 months
 
   // Roughly 1% monthly growth = daily decay going backwards
-  // (1.01)^(1/30) = ~1.00033 growth => backwards decay is 1/1.00033 ~ 0.99966
+  // (1.01)^(1/30) ≈ 1.00033 growth → backwards decay ≈ 0.99966
   const dailyDecay = Math.pow(1.01, -1 / 30);
 
   let currentPiso = BANDAS.piso;
   let currentTecho = BANDAS.techo;
-  // Official rate typically sits closer to the floor in recent months
-  let currentOficial = currentPiso + (currentTecho - currentPiso) * 0.15;
 
-  const today = new Date();
+  // Use Buenos Aires time so the "today" entry always matches the Argentine date.
+  const todayBRT = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" })
+  );
 
   // Generate backwards
   for (let i = 0; i < DAYS; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
+    const d = new Date(todayBRT);
+    d.setDate(todayBRT.getDate() - i);
+
+    // Oficial is deterministically placed at 15% from the floor
+    const oficial = currentPiso + (currentTecho - currentPiso) * 0.15;
 
     history.unshift({
       fecha: d.toISOString().split("T")[0],
       piso: Number(currentPiso.toFixed(2)),
       techo: Number(currentTecho.toFixed(2)),
-      oficial: Number(currentOficial.toFixed(2)),
+      oficial: Number(oficial.toFixed(2)),
     });
 
     currentPiso *= dailyDecay;
     currentTecho *= dailyDecay;
-    
-    // Add small random walk to official, scaled to decay
-    const noise = (Math.random() - 0.5) * 5; 
-    currentOficial = (currentOficial + noise) * dailyDecay;
   }
 
   return history;

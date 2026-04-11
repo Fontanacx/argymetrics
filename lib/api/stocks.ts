@@ -1,6 +1,6 @@
 import { StockData, StockHistoryEntry } from "../types";
 import { STOCK_TICKERS, STOCK_NAMES, REVALIDATE_STOCKS } from "@/lib/constants";
-import { fetchYahooChart } from "./yahoo";
+import { fetchYahooChart, parseYahooHistory } from "./yahoo";
 
 export async function getArgentineStocks(): Promise<StockData[]> {
   const promises = STOCK_TICKERS.map(async (symbol) => {
@@ -26,8 +26,8 @@ export async function getArgentineStocks(): Promise<StockData[]> {
       variation = ((price - meta.previousClose) / meta.previousClose) * 100;
     } else if (result?.indicators?.quote?.[0]?.close) {
       // Fallback: manually calculate from the end of the history array
-      const closes = result.indicators.quote[0].close;
-      const validCloses = closes.filter((c: any): c is number => typeof c === "number" && !isNaN(c));
+      const closes: (number | null)[] = result.indicators.quote[0].close;
+      const validCloses = closes.filter((c): c is number => typeof c === "number" && !isNaN(c));
       if (validCloses.length >= 2) {
         const yesterdayClose = validCloses[validCloses.length - 2];
         if (yesterdayClose > 0) {
@@ -40,21 +40,11 @@ export async function getArgentineStocks(): Promise<StockData[]> {
     const low = meta.regularMarketDayLow ?? price;
     const volume = meta.regularMarketVolume ?? 0;
 
-    const history: StockHistoryEntry[] = [];
-    
-    if (result?.timestamp && result?.indicators?.quote?.[0]?.close) {
-      const timestamps: number[] = result.timestamp;
-      const closes: (number | null)[] = result.indicators.quote[0].close;
-
-      for (let i = 0; i < timestamps.length; i++) {
-          const val = closes[i];
-          if (typeof val === "number" && !isNaN(val)) {
-              const dateStr = new Date(timestamps[i] * 1000).toISOString().split('T')[0];
-              const roundedVal = Number(val.toFixed(2));
-              history.push({ fecha: dateStr, valor: roundedVal });
-          }
-      }
-    }
+    const rawHistory = result?.timestamp && result?.indicators?.quote?.[0]?.close
+      ? parseYahooHistory(result.timestamp, result.indicators.quote[0].close)
+      : [];
+    // StockHistoryEntry is structurally identical to parseYahooHistory output
+    const history: StockHistoryEntry[] = rawHistory;
 
     const updatedAt = typeof meta.regularMarketTime === "number"
       ? new Date(meta.regularMarketTime * 1000).toISOString()

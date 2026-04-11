@@ -7,17 +7,10 @@ import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
 import { fetchWalletDollars } from "@/lib/api/wallets";
 import { getArgentineStocks } from "@/lib/api/stocks";
 import { getMarketIndices } from "@/lib/api/indices";
-import { Navbar } from "@/app/components/layout";
-import { Footer } from "@/app/components/layout";
-import { SectionHeader } from "@/app/components/layout";
-import { DollarGrid } from "@/app/components/dashboard";
-import { IndicatorsStrip } from "@/app/components/dashboard";
-import { BandasIndicator } from "@/app/components/dashboard";
-import { MarketTicker } from "@/app/components/layout";
+import { Navbar, Footer, SectionHeader, MarketTicker } from "@/app/components/layout";
+
+import { DollarGrid, IndicatorsStrip, BandasIndicator, StockGrid, IndexGrid } from "@/app/components/dashboard";
 import CryptoStrip from "./components/CryptoStrip";
-import { StockGrid } from "@/app/components/dashboard";
-import { IndexGrid } from "@/app/components/dashboard";
-import { DISPLAYED_CASAS } from "@/lib/constants";
 
 export const revalidate = 0;
 

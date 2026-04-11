@@ -229,3 +229,13 @@ export interface LatamCurrencyRate {
   fechaActualizacion: string; // ISO date string
 }
 
+// ---------------------------------------------------------------------------
+// Commodities (Gold, Brent, Gas Natural)
+// ---------------------------------------------------------------------------
+
+export interface CommodityQuote {
+  name: string;
+  price: number;
+  changePercent: number;
+  fecha: string;
+}
