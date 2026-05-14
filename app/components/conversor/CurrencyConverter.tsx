@@ -1,0 +1,410 @@
+"use client";
+
+import { useState, useMemo, useRef, useEffect } from "react";
+import { ArrowDownUp, ChevronDown } from "lucide-react";
+import type { DollarWithHistory, LatamCurrencyRate } from "@/lib/types";
+import { formatARS } from "@/lib/formatters/currency";
+import { CASA_LABELS, LATAM_FLAGS, LATAM_LABELS, LATAM_SYMBOLS } from "@/lib/constants";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface CurrencyConverterProps {
+  dollars: DollarWithHistory[];
+  latamCurrencies: LatamCurrencyRate[];
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+  flag: string;
+  /** When true, renders as a non-interactive section heading, not a button */
+  divider?: boolean;
+}
+
+interface CustomSelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: SelectOption[];
+}
+
+// ---------------------------------------------------------------------------
+// CustomSelect — supports optional divider entries between option groups
+// ---------------------------------------------------------------------------
+
+function CustomSelect({ value, onChange, options }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Ignore divider entries when looking up the selected label
+  const selectedOption = options.find((o) => o.value === value && !o.divider);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 pr-2 text-sm font-bold tracking-wide uppercase outline-none focus:ring-0 transition-opacity hover:opacity-80"
+        style={{ color: "var(--text-primary)" }}
+        type="button"
+      >
+        <span className="text-xl leading-none">{selectedOption?.flag || "🇺🇸"}</span>
+        <span>{selectedOption?.label || "Select"}</span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 mt-[1px] ${isOpen ? "rotate-180" : ""}`}
+          style={{ color: "var(--text-muted)" }}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute left-0 top-full z-50 mt-3 max-h-64 min-w-[220px] overflow-y-auto rounded-xl border p-1 shadow-2xl"
+          style={{
+            background: "var(--bg-card)",
+            borderColor: "var(--border-subtle)",
+            boxShadow: "0px 10px 30px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            {options.map((opt, idx) =>
+              opt.divider ? (
+                // Section heading — non-interactive
+                <div
+                  key={`divider-${idx}`}
+                  className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {opt.label}
+                </div>
+              ) : (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
+                  style={{
+                    background: value === opt.value ? "var(--bg-primary)" : "transparent",
+                    color: value === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (value !== opt.value) e.currentTarget.style.background = "var(--border-subtle)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (value !== opt.value) e.currentTarget.style.background = "transparent";
+                  }}
+                  type="button"
+                >
+                  <span className="text-xl leading-none">{opt.flag}</span>
+                  <span className="font-semibold">{opt.label}</span>
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Returns a flag emoji for a given currency casa/code */
+function getFlag(code: string): string {
+  if (code in LATAM_FLAGS) return LATAM_FLAGS[code];
+  if (code.includes("euro")) return "🇪🇺";
+  if (code.includes("real")) return "🇧🇷";
+  return "🇺🇸";
+}
+
+/** Returns the currency symbol shown on the input prefix */
+function getCurrencySymbol(code: string): string {
+  if (code in LATAM_SYMBOLS) return LATAM_SYMBOLS[code];
+  const flag = getFlag(code);
+  if (flag === "🇧🇷") return "R$";
+  if (flag === "🇪🇺") return "€";
+  return "US$";
+}
+
+/** Returns the label shown on the output field (e.g. "USD", "EUR", "MXN") */
+function getCurrencyLabel(code: string): string {
+  if (code in LATAM_LABELS) return code; // "MXN", "COP", etc.
+  const flag = getFlag(code);
+  if (flag === "🇧🇷") return "BRL";
+  if (flag === "🇪🇺") return "EUR";
+  return "USD";
+}
+
+// ---------------------------------------------------------------------------
+// Main Component
+// ---------------------------------------------------------------------------
+
+export default function CurrencyConverter({ dollars, latamCurrencies }: CurrencyConverterProps) {
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("blue");
+  const [amount, setAmount] = useState<string>("");
+  const [mode, setMode] = useState<"venta" | "compra">("venta");
+  const [isPesosTop, setIsPesosTop] = useState<boolean>(true);
+
+  // ---------------------------------------------------------------------------
+  // Rate resolution: check dollars first, then latamCurrencies
+  // ---------------------------------------------------------------------------
+  const selectedDollarObj = dollars.find((d) => d.rate.casa === selectedCurrency);
+  const selectedLatamObj = !selectedDollarObj
+    ? latamCurrencies.find((l) => l.moneda === selectedCurrency)
+    : undefined;
+
+  const rateVenta = selectedDollarObj?.rate.venta ?? selectedLatamObj?.venta ?? 1;
+  const rateCompra = selectedDollarObj?.rate.compra ?? selectedLatamObj?.compra ?? 1;
+  const activeRate = mode === "venta" ? rateVenta : rateCompra;
+
+  const fechaActualizacion =
+    selectedDollarObj?.rate.fechaActualizacion ?? selectedLatamObj?.fechaActualizacion ?? null;
+
+  // ---------------------------------------------------------------------------
+  // Build dropdown options: existing dollars + LATAM section divider + LATAM rates
+  // ---------------------------------------------------------------------------
+  const selectOptions = useMemo<SelectOption[]>(() => {
+    const dollarOptions: SelectOption[] = dollars.map((d) => ({
+      value: d.rate.casa,
+      label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
+      flag: getFlag(d.rate.casa),
+    }));
+
+    if (latamCurrencies.length === 0) return dollarOptions;
+
+    const divider: SelectOption = {
+      value: "__latam_divider__",
+      label: "Monedas LATAM",
+      flag: "",
+      divider: true,
+    };
+
+    const latamOptions: SelectOption[] = latamCurrencies.map((l) => ({
+      value: l.moneda,
+      label: LATAM_LABELS[l.moneda] || l.nombre,
+      flag: LATAM_FLAGS[l.moneda] || "",
+    }));
+
+    return [...dollarOptions, divider, ...latamOptions];
+  }, [dollars, latamCurrencies]);
+
+  // ---------------------------------------------------------------------------
+  // Input handling
+  // ---------------------------------------------------------------------------
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/,/g, ".");
+    if (value === "") return setAmount("");
+    if (/^\d*\.?\d*$/.test(value)) setAmount(value);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Conversion
+  // ---------------------------------------------------------------------------
+  const convertedAmount = useMemo(() => {
+    const numAmount = parseFloat(amount || "0");
+    if (isNaN(numAmount) || numAmount === 0 || activeRate === 0) return 0;
+    return isPesosTop ? numAmount / activeRate : numAmount * activeRate;
+  }, [amount, isPesosTop, activeRate]);
+
+  // ---------------------------------------------------------------------------
+  // Timestamp
+  // ---------------------------------------------------------------------------
+  const updatedAt = fechaActualizacion
+    ? new Intl.DateTimeFormat("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "America/Argentina/Buenos_Aires",
+      }).format(new Date(fechaActualizacion))
+    : null;
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+  return (
+    <div
+      className="mx-auto flex max-w-[500px] flex-col rounded-xl p-6 border transition-colors"
+      style={{
+        background: "var(--bg-card)",
+        borderColor: "var(--border-primary)",
+        color: "var(--text-primary)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      {/* Top Header / Tabs */}
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex gap-4 border-b pb-2" style={{ borderColor: "var(--border-subtle)" }}>
+          <button
+            onClick={() => setMode("venta")}
+            className="text-sm font-bold tracking-wide transition-colors hover:opacity-80"
+            style={
+              mode === "venta"
+                ? {
+                    color: "var(--text-primary)",
+                    borderBottom: "2px solid var(--color-accent)",
+                    marginBottom: "-10px",
+                    paddingBottom: "8px",
+                  }
+                : { color: "var(--text-muted)" }
+            }
+          >
+            VENTA
+          </button>
+          <button
+            onClick={() => setMode("compra")}
+            className="text-sm font-bold tracking-wide transition-colors hover:opacity-80"
+            style={
+              mode === "compra"
+                ? {
+                    color: "var(--text-primary)",
+                    borderBottom: "2px solid var(--color-accent)",
+                    marginBottom: "-10px",
+                    paddingBottom: "8px",
+                  }
+                : { color: "var(--text-muted)" }
+            }
+          >
+            COMPRA
+          </button>
+        </div>
+        <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+          {updatedAt ? `Actualizado a las ${updatedAt}` : "Actualizando..."}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {/* Top Block */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 px-1">
+            {isPesosTop ? (
+              <>
+                <span className="text-lg leading-none">🇦🇷</span>
+                <span className="text-sm font-bold tracking-wide">ARS</span>
+              </>
+            ) : (
+              <CustomSelect
+                value={selectedCurrency}
+                onChange={setSelectedCurrency}
+                options={selectOptions}
+              />
+            )}
+          </div>
+          <div className="relative">
+            <span
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {isPesosTop ? "$" : getCurrencySymbol(selectedCurrency)}
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={amount}
+              onChange={handleAmountChange}
+              className="w-full rounded-lg py-4 pl-14 pr-4 text-right text-2xl font-bold outline-none transition-colors"
+              style={{
+                background: "var(--bg-primary)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Swap Icon */}
+        <div className="flex items-center justify-center">
+          <button
+            onClick={() => {
+              setIsPesosTop(!isPesosTop);
+              setAmount(convertedAmount > 0 ? convertedAmount.toFixed(2).replace(".00", "") : "");
+            }}
+            className="flex items-center justify-center transition-colors hover:opacity-80"
+            style={{ color: "var(--color-accent)" }}
+            aria-label="Invertir monedas"
+          >
+            <ArrowDownUp size={20} />
+          </button>
+        </div>
+
+        {/* Bottom Block */}
+        <div className="flex flex-col gap-2 relative">
+          <div className="flex items-center gap-2 px-1">
+            {!isPesosTop ? (
+              <>
+                <span className="text-lg leading-none">🇦🇷</span>
+                <span className="text-sm font-bold tracking-wide">ARS</span>
+              </>
+            ) : (
+              <CustomSelect
+                value={selectedCurrency}
+                onChange={setSelectedCurrency}
+                options={selectOptions}
+              />
+            )}
+          </div>
+          <div
+            className="relative rounded-lg py-4 pl-4 pr-4 border"
+            style={{ background: "var(--bg-primary)", borderColor: "var(--border-subtle)" }}
+          >
+            <div className="flex items-baseline justify-end gap-1 text-right overflow-hidden">
+              <span
+                className="text-2xl font-bold truncate min-w-0"
+                style={{ color: "var(--text-primary)" }}
+                title={
+                  !isPesosTop
+                    ? formatARS(convertedAmount).replace("$", "").trim()
+                    : convertedAmount > 0
+                      ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : "0,00"
+                }
+              >
+                {!isPesosTop
+                  ? formatARS(convertedAmount).replace("$", "").trim()
+                  : convertedAmount > 0
+                    ? convertedAmount.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : "0,00"}
+              </span>
+              <span className="text-xl font-bold shrink-0" style={{ color: "var(--text-primary)" }}>
+                {!isPesosTop ? "(ARS)" : getCurrencyLabel(selectedCurrency)}
+              </span>
+            </div>
+            {/* Precio Base Helper */}
+            <div className="mt-1 text-right text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+              precio: {formatARS(activeRate)}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg px-8 py-3 text-sm font-bold transition-colors hover:opacity-80 focus:ring-2 focus:outline-none"
+            style={{
+              background: "var(--color-accent-light)",
+              color: "var(--color-accent)",
+              border: "1px solid var(--color-accent-light)",
+            }}
+          >
+            Actualizar precios
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
