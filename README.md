@@ -1,56 +1,95 @@
-# ArgyMetrics 🇦🇷
+# ArgyMetrics
 
-🌍 **En vivo:** [argymetrics.vercel.app](https://argymetrics.vercel.app/)
+**Dashboard financiero en tiempo real para Argentina y mercados globales.**
 
-ArgyMetrics es un dashboard financiero interactivo y en tiempo real diseñado para rastrear las métricas clave de la economía argentina y los mercados globales. Provee información centralizada y de fácil lectura sobre divisas, indicadores de riesgo, criptomonedas y materias primas.
-
-##  Características Principales
-
-- **Divisas (Dólar y Euro):** Cotizaciones en tiempo real del Dólar (Blue, Oficial, Bolsa, CCL, Tarjeta, etc.) y Euro, incluyendo minigráficos (*sparklines*) con el historial de los últimos días.
-- **Riesgo País e Inflación:** Seguimiento diario del Riesgo País y la Inflación Mensual (IPC), con gráficos históricos accesibles mediante modales interactivos.
-- **Criptomonedas:** Precios en vivo de Bitcoin (BTC) y Ethereum (ETH) utilizando datos precisos.
-- **Materias Primas (Commodities):** Valores actualizados de Oro y Petróleo Brent.
-- **Conversor de Monedas:** Una herramienta integrada para convertir rápidamente entre Pesos Argentinos (ARS) y las distintas variantes del Dólar y Euro.
-- **Bandas Cambiarias:** Visualización del estado actual de la cotización oficial dentro del esquema de bandas cambiarias esperado.
-
-##  Tecnologías Utilizadas
-
-- **Framework:** [Next.js 15+](https://nextjs.org/) (App Router, Server Components).
-- **Lenguaje:** TypeScript.
-- **Estilos:** Tailwind CSS v4 para un diseño moderno, responsivo y modo oscuro.
-- **Gráficos:** Recharts para visualizaciones de datos históricas nítidas y dinámicas.
-- **Íconos:** Lucide React.
-- **Fuentes de Datos:** APIs públicas como DolarAPI, ArgentinaDatos, CriptoYa y Yahoo Finance.
-
-## ⚙️ Instalación y Uso Local
-
-Este proyecto utiliza `pnpm` como gestor de paquetes.
-
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/argymetrics.git
-   ```
-
-2. Instala las dependencias:
-   ```bash
-   cd argymetrics
-   pnpm install
-   ```
-
-3. Inicia el servidor de desarrollo:
-   ```bash
-   pnpm run dev
-   ```
-
-4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
-
-##  Contribuciones
-
-¡Las contribuciones son bienvenidas! Si tienes ideas para mejorar la interfaz, agregar nuevas métricas de Argentina o corregir bugs, no dudes en hacer un *fork* y enviar un *pull request*.
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+[![Deploy](https://img.shields.io/badge/live-argymetrics.vercel.app-blue)](https://argymetrics.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 ---
-*Datos provistos por DolarAPI, ArgentinaDatos, Yahoo Finance y CriptoYa. La información es de carácter informativo y no constituye asesoramiento financiero.*
+
+## Datos en vivo
+
+| Categoria | Fuente | Revalidacion |
+|---|---|---|
+| Divisas (Blue, Oficial, MEP, CCL, Cripto, Tarjeta, Euro, Real) | DolarAPI | 0s (always fresh) |
+| Riesgo Pais, Inflacion (IPC), Reservas BCRA | ArgentinaDatos / Ambito / BCRA | 2 min |
+| Criptomonedas (BTC, ETH) | Yahoo Finance | 1 min |
+| Commodities (Oro, Brent, Gas Natural) | Yahoo Finance | 5 min |
+| Acciones Argentinas (11 empresas BYMA) | Yahoo Finance | 5 min |
+| Acciones Internacionales (7 empresas NASDAQ/KRX) | Yahoo Finance | 5 min |
+| Indices (Merval, S&P 500, Nasdaq, Dow Jones) | Yahoo Finance | 5 min |
+| Billeteras Virtuales (AstroPay, Lemon, Belo, etc.) | CriptoYa | 1 min |
+| Monedas LATAM (MXN, COP, UYU, PEN, CLP, PYG) | DolarAPI / ER-API | 1 min |
+
+## Acciones
+
+### Internacionales (NASDAQ / KRX)
+`AAPL` Apple · `NVDA` Nvidia · `MSFT` Microsoft · `SAMSUNG` Samsung · `TSLA` Tesla · `SPCX` SpaceX · `MU` Micron
+
+### Argentinas (BYMA)
+`GGAL` Grupo Galicia · `YPFD` YPF · `PAMP` Pampa Energia · `BMA` Banco Macro · `CEPU` Central Puerto · `TXAR` Ternium · `ALUA` Aluar · `CRES` Cresud · `TGSU2` TGS · `LOMA` Loma Negra · `MELI` Mercado Libre
+
+## Arquitectura
+
+- **Server-first**: React Server Components, zero client-side fetching
+- **Typescript estricto**: sin `any`, tipos unificados en `lib/types/index.ts`
+- **API layer**: toda la logica de fetching en `lib/api/`, nunca en componentes
+- **ISR caching**: `fetch({ next: { revalidate } })` por fuente de datos
+- **Safe fallbacks**: API errors devuelven `null`, `[]`, `0` — nunca crashea SSR
+- **Logos locales**: 18 logos corporativos servidos desde `/public/logos/` (SVG + PNG), sin dependencias externas
+
+## Stack
+
+| Tecnologia | Uso |
+|---|---|
+| Next.js 16 (App Router) | Framework, SSR, ISR |
+| TypeScript 5 | Tipado estricto |
+| Tailwind CSS v4 | Dark mode, responsive |
+| Recharts 3 | Sparklines + graficos historicos |
+| Lucide React | Iconos |
+| DolarAPI / ArgentinaDatos / Yahoo Finance / CriptoYa | Fuentes de datos |
+
+## Desarrollo local
+
+```bash
+git clone https://github.com/Fontanacx/argymetrics.git
+cd argymetrics
+pnpm install
+pnpm approve-builds --all
+pnpm dev
+```
+
+Abre [http://localhost:3000](http://localhost:3000).
+
+### Regenerar logos corporativos
+
+```bash
+pwsh scripts/download-logos.ps1
+```
+
+## Estructura del proyecto
+
+```
+lib/
+  types/index.ts          Tipos TypeScript unificados
+  api/                    10 modulos de fetching (dollars, stocks, crypto, etc.)
+  constants/              Configuracion, tickers, labels, revalidacion
+  formatters/             currency.ts, date.ts, metrics.ts
+  utils/                  insights.ts, semaforo.ts, briefing-generator.ts
+app/
+  components/dashboard/   Server Components (DollarCard, StockCard, IndexCard, etc.)
+  components/charts/      SparklineChart (Recharts)
+  components/layout/      Navbar, Footer, MarketTicker, SectionHeader
+  components/ui/          VariationBadge, Skeletons
+  components/modals/      InfoButton, IndicatorDetail, Modal
+  components/insights/    Panel de insights diarios
+  page.tsx                Dashboard principal
+public/logos/             18 logos corporativos (SVG + PNG)
+scripts/                  download-logos.ps1
+```
+
+## Licencia
+
+MIT. Los datos provistos son de caracter informativo y no constituyen asesoramiento financiero.
