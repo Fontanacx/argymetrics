@@ -5,19 +5,41 @@ import type { HistoricalComparisonSeries } from "@/lib/types";
 import HistoricalComparison from "@/app/components/HistoricalComparison";
 import SectionShell from "./SectionShell";
 
-export function HistoricalComparisonSectionSkeleton() {
+function HistoricalComparisonSectionSkeletonContent({ withHeader }: { withHeader: boolean }) {
+  const content = (
+    <div className="historical-comparison-card">
+      <div className="skeleton h-8 w-64" />
+      <div className="skeleton mt-4 h-72 w-full" />
+    </div>
+  );
+
+  if (!withHeader) {
+    return (
+      <section id="comparador" className="mb-8">
+        {content}
+      </section>
+    );
+  }
+
   return (
     <SectionShell id="comparador" title="Comparador Histórico" icon={ChartLine}>
-      <div className="historical-comparison-card">
-        <div className="skeleton h-8 w-64" />
-        <div className="skeleton mt-4 h-72 w-full" />
-      </div>
+      {content}
     </SectionShell>
   );
 }
 
+export function HistoricalComparisonPageSkeleton() {
+  return <HistoricalComparisonSectionSkeletonContent withHeader={false} />;
+}
+
+interface HistoricalComparisonSectionProps {
+  withHeader?: boolean;
+}
+
 /** Server data boundary for the cross-market historical comparison. */
-export default async function HistoricalComparisonSection() {
+export default async function HistoricalComparisonSection({
+  withHeader = true,
+}: HistoricalComparisonSectionProps) {
   const [blueHistory, mepHistory, riesgoHistory, inflacionHistory] = await Promise.all([
     fetchFullDollarHistory("blue"),
     fetchFullDollarHistory("bolsa"),
@@ -53,6 +75,16 @@ export default async function HistoricalComparisonSection() {
   ];
   const datasets = allDatasets.filter((dataset) => dataset.data.length > 0);
 
+  const content = <HistoricalComparison datasets={datasets} />;
+
+  if (!withHeader) {
+    return (
+      <section id="comparador" className="mb-8">
+        {content}
+      </section>
+    );
+  }
+
   return (
     <SectionShell
       id="comparador"
@@ -60,7 +92,7 @@ export default async function HistoricalComparisonSection() {
       icon={ChartLine}
       subtitle="Dólar Blue · MEP · Riesgo País · Inflación"
     >
-      <HistoricalComparison datasets={datasets} />
+      {content}
     </SectionShell>
   );
 }

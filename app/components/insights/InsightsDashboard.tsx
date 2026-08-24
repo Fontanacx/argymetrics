@@ -4,7 +4,6 @@ import type { BriefingInput, SemaforoItem } from "@/lib/types";
 import { SemaforoGrid } from "./SemaforoGrid";
 import { BriefingCard } from "./BriefingCard";
 import { ProfileTabs } from "./ProfileTabs";
-import { DatePicker } from "./DatePicker";
 import { Activity, Users, FileText } from "lucide-react";
 
 interface InsightsDashboardProps {
@@ -38,20 +37,13 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ElementType; title: s
 export function InsightsDashboard({ briefingInput, semaforoItems, briefingText }: InsightsDashboardProps) {
   return (
     <div className="flex flex-col gap-8 w-full pb-12">
-      {/* Header with title and date picker */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* Internal dashboard heading; the page-level hero owns the date control. */}
+      <div className="insights-dashboard-heading">
         <div>
-          <h2
-            className="text-xl font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Resumen Extendido
-          </h2>
-          <p className="text-xs mt-1 font-medium" style={{ color: "var(--text-muted)" }}>
-            Señales del mercado, análisis inteligente y recomendaciones por perfil
-          </p>
+          <p className="insights-dashboard-kicker">Panel de lectura</p>
+          <h2>Señales que importan hoy</h2>
+          <p>Señales del mercado, contexto y recomendaciones según tu perfil.</p>
         </div>
-        <DatePicker />
       </div>
 
       {/* Semaforo Section */}

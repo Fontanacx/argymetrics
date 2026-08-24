@@ -16,5 +16,6 @@ export { default as CryptosSection, CryptosSectionSkeleton } from './CryptosSect
 export { default as DashboardIntro } from './DashboardIntro';
 export {
   default as HistoricalComparisonSection,
-  HistoricalComparisonSectionSkeleton,
+  HistoricalComparisonPageSkeleton,
 } from './HistoricalComparisonSection';
+export { default as HistoricalComparisonCta } from './HistoricalComparisonCta';

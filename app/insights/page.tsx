@@ -1,5 +1,5 @@
-import { BarChart3 } from "lucide-react";
-import { Navbar, Footer, SectionHeader } from "@/app/components/layout";
+import { BarChart3, CalendarDays } from "lucide-react";
+import { Navbar, Footer } from "@/app/components/layout";
 import { fetchDollarsWithHistory, fetchRiesgoPaisHistory, fetchFullDollarHistory } from "@/lib/api/historical";
 import { fetchRiesgoPais, fetchInflacion, fetchInflacionHistory } from "@/lib/api/indicators";
 import { fetchCommodities, fetchCommodityHistory } from "@/lib/api/commodities";
@@ -7,6 +7,7 @@ import { fetchCryptos, fetchCryptoHistory } from "@/lib/api/crypto";
 import { fetchWalletDollars } from "@/lib/api/wallets";
 import { getArgentineStocks } from "@/lib/api/stocks";
 import DailyInsights from "@/app/components/DailyInsights";
+import { DatePicker } from "@/app/components/insights/DatePicker";
 import { computeSemaforo } from "@/lib/utils/semaforo";
 import { generateBriefingText } from "@/lib/utils/briefing-generator";
 import type { BriefingInput } from "@/lib/types";
@@ -212,14 +213,39 @@ export default async function InsightsPage(props: { searchParams: Promise<{ [key
       style={{ background: "var(--bg-primary)" }}
     >
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <SectionHeader 
-          title="Resumen del Día" 
-          subtitle="Análisis inteligente del mercado argentino" 
-          icon={BarChart3} 
-        />
-        
-        <div className="mt-8">
+      <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <header className="insights-page-hero">
+          <div className="insights-page-hero-top">
+            <div className="insights-page-hero-title">
+              <div className="insights-page-hero-mark" aria-hidden="true">
+                <BarChart3 size={26} strokeWidth={1.8} />
+              </div>
+              <div>
+                <p className="insights-page-hero-eyebrow">ArgyMetrics / inteligencia de mercado</p>
+                <h1>Resumen del Día</h1>
+                <p className="insights-page-hero-subtitle">Análisis inteligente del mercado argentino</p>
+              </div>
+            </div>
+
+            <div className="insights-page-hero-status">
+              <span className={`insights-live-status${isTimeTravel ? " is-history" : ""}`}>
+                <span className="insights-live-dot" aria-hidden="true" />
+                {isTimeTravel ? "Lectura histórica" : "Mercado en vivo"}
+              </span>
+              <span className="insights-page-hero-date">{dateStr}</span>
+            </div>
+          </div>
+
+          <div className="insights-page-hero-footer">
+            <div className="insights-page-hero-context">
+              <CalendarDays aria-hidden="true" size={15} />
+              <span>{isTimeTravel ? "Consultando una fecha anterior" : "Datos de la jornada"}</span>
+            </div>
+            <DatePicker />
+          </div>
+        </header>
+
+        <div className="mt-7 sm:mt-8">
            <DailyInsights 
              dollars={dollars}
              cryptos={cryptos}

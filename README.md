@@ -40,7 +40,7 @@
 - **Dashboard responsive**: navegación y comparador optimizados para escritorio, tablet y móvil, con soporte de tema claro y oscuro.
 - **Identidad completa**: lockups horizontal y apilado, isotipo, favicon, íconos PWA, Open Graph y metadata estructurada para buscadores y redes.
 
-Para probar el comparador localmente, iniciá el proyecto con `pnpm dev`, abrí [http://localhost:3000](http://localhost:3000) y seleccioná **Comparador** en el navbar.
+Para probar el comparador localmente, iniciá el proyecto con `pnpm dev`, abrí [http://localhost:3000/comparador](http://localhost:3000/comparador) o seleccioná **Comparador** en el navbar.
 
 ## Sistema de marca
 

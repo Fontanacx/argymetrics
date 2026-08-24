@@ -8,7 +8,7 @@ import BrandLogo from "./BrandLogo";
 
 /**
  * Sticky navbar with frosted glass effect, branding, theme toggle,
- * and responsive anchor navigation.
+ * and responsive section navigation.
  */
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function Navbar() {
     { href: "/#divisas", label: "Divisas" },
     { href: "/#billeteras", label: "Billeteras" },
     { href: "/#indicadores", label: "Indicadores" },
-    { href: "/#comparador", label: "Comparador" },
+    { href: "/comparador", label: "Comparador" },
     { href: "/#acciones", label: "Acciones" },
     { href: "/insights", label: "Resumen" },
     { href: "/conversor", label: "Conversor" },

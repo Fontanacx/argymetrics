@@ -36,7 +36,7 @@ export function BriefingCard({ text, date }: BriefingCardProps) {
             <Sparkles size={16} />
           </div>
           <h2 className="font-bold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>
-            Análisis del Día
+            Briefing de mercado
           </h2>
         </div>
         <span

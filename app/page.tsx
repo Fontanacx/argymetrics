@@ -11,8 +11,7 @@ import {
   CryptosSection,
   CryptosSectionSkeleton,
   DashboardIntro,
-  HistoricalComparisonSection,
-  HistoricalComparisonSectionSkeleton,
+  HistoricalComparisonCta,
 } from "@/app/components/dashboard";
 import { TickerSkeleton } from "@/app/components/ui";
 
@@ -48,9 +47,7 @@ export default function Home() {
           <IndicatorsSection />
         </Suspense>
 
-        <Suspense fallback={<HistoricalComparisonSectionSkeleton />}>
-          <HistoricalComparisonSection />
-        </Suspense>
+        <HistoricalComparisonCta />
 
         <Suspense fallback={<MarketsSectionSkeleton />}>
           <MarketsSection />
