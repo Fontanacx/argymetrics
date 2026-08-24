@@ -1,4 +1,4 @@
-import { DollarSign, Activity, TrendingUp, BarChart3, Coins } from "lucide-react";
+import { DollarSign, Activity, TrendingUp, BarChart3, Coins, ChartLine } from "lucide-react";
 import { Navbar, Footer, SectionHeader } from "@/app/components/layout";
 import {
   DollarGridSkeleton,
@@ -40,6 +40,17 @@ export default function Loading() {
             <div>
               <BandasIndicatorSkeleton />
             </div>
+          </div>
+        </section>
+
+        {/* Historical comparison skeleton */}
+        <section className="mb-8">
+          <div className="mb-4">
+            <SectionHeader title="Comparador Histórico" icon={ChartLine} />
+          </div>
+          <div className="historical-comparison-card">
+            <div className="skeleton h-8 w-64" />
+            <div className="skeleton mt-4 h-72 w-full" />
           </div>
         </section>
 

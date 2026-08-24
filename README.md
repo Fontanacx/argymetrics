@@ -1,5 +1,14 @@
 # ArgyMetrics
 
+<p align="center">
+  <img src="./logo/logo-horizontal.png" alt="ArgyMetrics" width="560" />
+</p>
+
+<p align="center">
+  <strong>El pulso financiero de Argentina, en una sola pantalla.</strong><br />
+  Cotizaciones, indicadores y contexto de mercado con una interfaz clara y rápida.
+</p>
+
 **Dashboard financiero en tiempo real para Argentina y mercados globales.**
 
 [![Deploy](https://img.shields.io/badge/live-argymetrics.vercel.app-blue)](https://argymetrics.vercel.app/)
@@ -23,6 +32,26 @@
 | Billeteras Virtuales (AstroPay, Lemon, Belo, etc.) | CriptoYa | 1 min |
 | Monedas LATAM (MXN, COP, UYU, PEN, CLP, PYG) | DolarAPI / ER-API | 1 min |
 
+## Experiencia del producto
+
+- **Comparador histórico**: contrasta Dólar Blue, MEP, Riesgo País e Inflación en períodos de 7, 30, 90 días, 1 año o un rango personalizado.
+- **Lectura relativa base 100**: permite comparar tendencias con unidades distintas sin perder los valores nominales.
+- **Valores reales en contexto**: el gráfico muestra el dato porcentual y el valor monetario, en puntos o porcentual según la serie; el resumen incluye inicio, final, diferencia y variación.
+- **Dashboard responsive**: navegación y comparador optimizados para escritorio, tablet y móvil, con soporte de tema claro y oscuro.
+- **Identidad completa**: lockups horizontal y apilado, isotipo, favicon, íconos PWA, Open Graph y metadata estructurada para buscadores y redes.
+
+Para probar el comparador localmente, iniciá el proyecto con `pnpm dev`, abrí [http://localhost:3000](http://localhost:3000) y seleccioná **Comparador** en el navbar.
+
+## Sistema de marca
+
+| Asset | Uso |
+|---|---|
+| `logo/logo-horizontal.png` | Navbar, README y superficies principales |
+| `logo/logo-stacked.png` | Footer y composiciones verticales |
+| `logo/icon-master.png` | Hero del dashboard y navegación móvil |
+| `logo/icon-16x16.png` a `logo/icon-512x512.png` | Favicon, Apple touch icon y PWA |
+| `logo/og-image-white.png` | Open Graph y tarjetas sociales |
+
 ## Acciones
 
 ### Internacionales (NASDAQ / KRX)
@@ -39,6 +68,7 @@
 - **ISR caching**: `fetch({ next: { revalidate } })` por fuente de datos
 - **Safe fallbacks**: API errors devuelven `null`, `[]`, `0` — nunca crashea SSR
 - **Logos locales**: 18 logos corporativos servidos desde `/public/logos/` (SVG + PNG), sin dependencias externas
+- **Comparador híbrido**: datos históricos en Server Components y controles/gráficos interactivos aislados en el cliente
 
 ## Stack
 
@@ -80,6 +110,7 @@ lib/
   utils/                  insights.ts, semaforo.ts, briefing-generator.ts
 app/
   components/dashboard/   Server Components (DollarCard, StockCard, IndexCard, etc.)
+  components/HistoricalComparison.tsx  Comparador histórico interactivo
   components/charts/      SparklineChart (Recharts)
   components/layout/      Navbar, Footer, MarketTicker, SectionHeader
   components/ui/          VariationBadge, Skeletons
@@ -87,9 +118,17 @@ app/
   components/insights/    Panel de insights diarios
   page.tsx                Dashboard principal
 public/logos/             18 logos corporativos (SVG + PNG)
+logo/                     Identidad ArgyMetrics, íconos y recursos sociales
 scripts/                  download-logos.ps1
 ```
 
 ## Licencia
 
 MIT. Los datos provistos son de caracter informativo y no constituyen asesoramiento financiero.
+
+## Validación
+
+```bash
+pnpm exec tsc --noEmit
+pnpm build
+```

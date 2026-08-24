@@ -1,4 +1,6 @@
-import { Globe, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Globe } from "lucide-react";
+import BrandLogo from "./BrandLogo";
 
 /**
  * Minimal fintech-style footer with attribution and creator links.
@@ -12,8 +14,19 @@ export default function Footer() {
     >
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-5 px-4 py-10 text-center">
         {/* Brand */}
-        <p className="text-lg font-semibold tracking-tight" style={{ color: "var(--text-primary)" }}>
-          Argy<span style={{ color: "var(--color-accent)" }}>Metrics</span>
+        <Link
+          href="/"
+          className="brand-footer-lockup transition-transform hover:scale-[1.02]"
+          aria-label="ArgyMetrics, inicio"
+        >
+          <BrandLogo
+            variant="stacked"
+            className="h-auto w-28 sm:w-32"
+            sizes="128px"
+          />
+        </Link>
+        <p className="-mt-2 text-xs font-medium uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+          Datos para entender el mercado
         </p>
 
         {/* Attribution & disclaimer */}

@@ -143,6 +143,25 @@ export interface HistoryMetrics {
   changePercent: number;
 }
 
+/** Series available in the cross-market historical comparison. */
+export type HistoricalComparisonSeriesKey = "blue" | "mep" | "riesgo" | "inflacion";
+
+export type HistoricalComparisonSeriesUnit = "ars" | "points" | "percent";
+
+export type HistoricalComparisonPeriod = "7d" | "30d" | "90d" | "1y" | "custom";
+
+export interface HistoricalComparisonPoint {
+  fecha: string;
+  valor: number;
+}
+
+export interface HistoricalComparisonSeries {
+  key: HistoricalComparisonSeriesKey;
+  label: string;
+  unit: HistoricalComparisonSeriesUnit;
+  data: HistoricalComparisonPoint[];
+}
+
 // ---------------------------------------------------------------------------
 // Stocks
 // ---------------------------------------------------------------------------

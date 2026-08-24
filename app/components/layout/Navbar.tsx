@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import ThemeToggle from "../ThemeToggle";
+import BrandLogo from "./BrandLogo";
 
 /**
  * Sticky navbar with frosted glass effect, branding, theme toggle,
@@ -15,6 +17,7 @@ export default function Navbar() {
     { href: "/#divisas", label: "Divisas" },
     { href: "/#billeteras", label: "Billeteras" },
     { href: "/#indicadores", label: "Indicadores" },
+    { href: "/#comparador", label: "Comparador" },
     { href: "/#acciones", label: "Acciones" },
     { href: "/insights", label: "Resumen" },
     { href: "/conversor", label: "Conversor" },
@@ -29,38 +32,42 @@ export default function Navbar() {
         background: "color-mix(in srgb, var(--bg-secondary) 80%, transparent)",
       }}
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Branding */}
-        <a href="/" className="group flex items-center gap-2">
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold transition-transform group-hover:scale-105"
-            style={{
-              background: "var(--color-accent)",
-              color: "var(--text-inverted)",
-            }}
-          >
-            A
-          </div>
-          <span
-            className="text-base font-semibold tracking-tight transition-colors"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Argy
-            <span style={{ color: "var(--color-accent)" }}>Metrics</span>
+        <Link
+          href="/"
+          className="brand-nav-link group flex items-center"
+          aria-label="ArgyMetrics, inicio"
+        >
+          <span className="brand-logo-surface hidden h-10 w-[156px] items-center px-2.5 sm:flex">
+            <BrandLogo
+              variant="horizontal"
+              priority
+              className="h-auto w-full object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              sizes="156px"
+            />
           </span>
-        </a>
+          <span className="brand-logo-surface flex h-10 w-10 items-center justify-center p-1.5 sm:hidden">
+            <BrandLogo
+              variant="mark"
+              priority
+              className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
+              sizes="40px"
+            />
+          </span>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-5">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-sm font-medium transition-colors hover:text-[var(--color-accent)]"
               style={{ color: "var(--text-muted)" }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <div className="pl-2 border-l" style={{ borderColor: "var(--border-subtle)" }}>
             <ThemeToggle />
@@ -92,7 +99,7 @@ export default function Navbar() {
           }}
         >
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               onClick={() => setIsMenuOpen(false)}
@@ -100,7 +107,7 @@ export default function Navbar() {
               style={{ color: "var(--text-primary)" }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
       )}

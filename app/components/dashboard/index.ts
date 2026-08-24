@@ -13,3 +13,8 @@ export { default as DollarsSection, DollarsSectionSkeleton } from './DollarsSect
 export { default as IndicatorsSection, IndicatorsSectionSkeleton } from './IndicatorsSection';
 export { default as MarketsSection, MarketsSectionSkeleton } from './MarketsSection';
 export { default as CryptosSection, CryptosSectionSkeleton } from './CryptosSection';
+export { default as DashboardIntro } from './DashboardIntro';
+export {
+  default as HistoricalComparisonSection,
+  HistoricalComparisonSectionSkeleton,
+} from './HistoricalComparisonSection';

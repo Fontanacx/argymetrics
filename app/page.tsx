@@ -10,6 +10,9 @@ import {
   MarketsSectionSkeleton,
   CryptosSection,
   CryptosSectionSkeleton,
+  DashboardIntro,
+  HistoricalComparisonSection,
+  HistoricalComparisonSectionSkeleton,
 } from "@/app/components/dashboard";
 import { TickerSkeleton } from "@/app/components/ui";
 
@@ -35,12 +38,18 @@ export default function Home() {
       <Navbar />
 
       <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <DashboardIntro />
+
         <Suspense fallback={<DollarsSectionSkeleton />}>
           <DollarsSection />
         </Suspense>
 
         <Suspense fallback={<IndicatorsSectionSkeleton />}>
           <IndicatorsSection />
+        </Suspense>
+
+        <Suspense fallback={<HistoricalComparisonSectionSkeleton />}>
+          <HistoricalComparisonSection />
         </Suspense>
 
         <Suspense fallback={<MarketsSectionSkeleton />}>
