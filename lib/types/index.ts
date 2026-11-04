@@ -27,6 +27,12 @@ export type DollarCasa =
   | "lemoncash"
   | "belo"
   | "buenbit"
+  | "ripio"
+  | "fiwind"
+  | "satoshitango"
+  | "decrypto"
+  | "takenos"
+  | "wallbit"
   | "real"
   | "realblue"
   | "realtarjeta";
@@ -72,6 +78,95 @@ export interface RiesgoPais {
 
 export interface InflacionMensual {
   fecha: string;
+  valor: number;
+  /** Variación porcentual respecto del mismo mes del año anterior (INDEC). */
+  interanual?: number;
+  /** Variación porcentual acumulada desde diciembre del año anterior (INDEC). */
+  acumulada?: number;
+}
+
+/** IPC por región estadística del INDEC (la API no publica apertura provincial). */
+export interface IpcRegional {
+  region: string;
+  fecha: string;
+  mensual: number;
+  interanual: number;
+  acumulada: number | null;
+}
+
+/** Salario real: evolución del índice de salarios descontando el IPC. */
+export interface SalarioReal {
+  fecha: string;
+  /** Variación real mensual, en porcentaje. */
+  mensual: number;
+  /** Variación real interanual, en porcentaje. */
+  interanual: number;
+  /** Variación nominal mensual del índice de salarios. */
+  nominalMensual: number;
+  /** Variación nominal interanual del índice de salarios. */
+  nominalInteranual: number;
+  /** IPC mensual del mismo período. */
+  inflacionMensual: number;
+  /** IPC interanual del mismo período. */
+  inflacionInteranual: number;
+}
+
+export interface SalarioRealHistoryEntry {
+  fecha: string;
+  /** Variación real interanual, en porcentaje. */
+  valor: number;
+}
+
+/** EMAE: actividad económica mensual (nivel general). */
+export interface ActividadEconomica {
+  fecha: string;
+  /** Variación interanual de la serie original. */
+  interanual: number;
+  /** Variación mensual de la serie desestacionalizada. */
+  mensual: number;
+  /** Índice base 2004=100, serie original. */
+  indice: number;
+}
+
+export interface ActividadEconomicaHistoryEntry {
+  fecha: string;
+  /** Variación interanual de la serie original. */
+  valor: number;
+}
+
+/** Canasta Básica Alimentaria y Total para el Hogar 2 del INDEC (4 integrantes, GBA). */
+export interface CanastaBasica {
+  fecha: string;
+  cba: number;
+  cbt: number;
+  /** Variación mensual de la CBT. */
+  variacionMensual: number | null;
+  /** Variación interanual de la CBT. */
+  variacionInteranual: number | null;
+}
+
+export interface CanastaBasicaHistoryEntry {
+  fecha: string;
+  cba: number;
+  cbt: number;
+}
+
+/** Incidencia de la pobreza y la indigencia (EPH, 31 aglomerados urbanos). */
+export interface Pobreza {
+  fecha: string;
+  /** Período INDEC, e.g. "20261S". */
+  periodo: string;
+  pobrezaPersonas: number;
+  pobrezaHogares: number;
+  indigenciaPersonas: number;
+  indigenciaHogares: number;
+  /** true cuando INDEC marca el dato como provisorio. */
+  provisorio: boolean;
+}
+
+export interface PobrezaHistoryEntry {
+  fecha: string;
+  /** Tasa de pobreza de personas, en porcentaje. */
   valor: number;
 }
 
@@ -251,6 +346,24 @@ export interface LatamCurrencyRate {
   compra: number;             // buy rate (ARS per 1 unit of foreign currency)
   venta: number;              // sell rate (ARS per 1 unit of foreign currency)
   fechaActualizacion: string; // ISO date string
+}
+
+// ---------------------------------------------------------------------------
+// BRL wallet quotes (Mercado Pago, Belo, Lemon, etc.)
+// ---------------------------------------------------------------------------
+
+export interface BrlWalletRate {
+  id: string;
+  nombre: string;
+  /** ARS you receive per 1 BRL (provider buys BRL from you). */
+  compra: number | null;
+  /** ARS you pay per 1 BRL (provider sells BRL to you). */
+  venta: number;
+  fechaActualizacion: string;
+  logo?: string;
+  url?: string;
+  /** Provider may charge extra fees on top of the quoted rate. */
+  hasFees: boolean;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import { fetchDollarsWithHistory } from "@/lib/api/historical";
 import { fetchWalletDollars } from "@/lib/api/wallets";
 import { fetchLatamCurrencies } from "@/lib/api/latam";
+import { fetchBrlWalletRates } from "@/lib/api/brl-wallets";
 import { Navbar } from "@/app/components/layout";
 import { Footer } from "@/app/components/layout";
 import { CurrencyConverter } from "@/app/components/conversor";
@@ -15,10 +16,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ConversorPage() {
-  const [dollars, walletDollars, latamCurrencies] = await Promise.all([
+  const [dollars, walletDollars, latamCurrencies, brlWallets] = await Promise.all([
     fetchDollarsWithHistory(),
     fetchWalletDollars(),
     fetchLatamCurrencies(),
+    fetchBrlWalletRates(),
   ]);
 
   const combinedDollars = [
@@ -35,7 +37,11 @@ export default async function ConversorPage() {
           <SectionHeader title="Conversor de Divisas" icon={ArrowLeftRight} />
         </div>
         
-        <CurrencyConverter dollars={combinedDollars} latamCurrencies={latamCurrencies} />
+        <CurrencyConverter
+          dollars={combinedDollars}
+          latamCurrencies={latamCurrencies}
+          brlWallets={brlWallets}
+        />
       </main>
 
       <Footer />

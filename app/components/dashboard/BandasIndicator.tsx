@@ -30,7 +30,7 @@ export default function BandasIndicator({ bandas, cotizacionActual, history, upd
 
   return (
     <div
-      className="rounded-xl border p-4"
+      className="metric-card rounded-xl border p-4"
       style={{
         background: "var(--bg-card)",
         borderColor: "var(--border-primary)",
@@ -40,7 +40,7 @@ export default function BandasIndicator({ bandas, cotizacionActual, history, upd
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">
         <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg"
+          className="metric-card-icon flex h-8 w-8 items-center justify-center rounded-lg"
           style={{ background: "var(--color-neutral-bg)", color: "var(--color-neutral)" }}
         >
           <ArrowDownUp size={16} />
@@ -70,7 +70,7 @@ export default function BandasIndicator({ bandas, cotizacionActual, history, upd
           <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
             Piso
           </p>
-          <p className="text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+          <p className="metric-card-value text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
             {formatARS(piso)}
           </p>
         </div>
@@ -78,43 +78,45 @@ export default function BandasIndicator({ bandas, cotizacionActual, history, upd
           <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
             Techo
           </p>
-          <p className="text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+          <p className="metric-card-value text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
             {formatARS(techo)}
           </p>
         </div>
       </div>
 
-      {/* Visual band bar */}
-      <div
-        className="relative h-2 w-full overflow-hidden rounded-full"
-        style={{ background: "var(--border-subtle)" }}
-      >
-        {positionPercent !== null && (
-          <div
-            className="absolute inset-y-0 left-0 rounded-full"
-            style={{
-              width: `${positionPercent}%`,
-              background: "var(--color-accent)",
-              transition: "width var(--transition-normal)",
-            }}
-          />
+      <div className="metric-card-extra">
+        {/* Visual band bar */}
+        <div
+          className="metric-progress relative h-2 w-full overflow-hidden rounded-full"
+          style={{ background: "var(--border-subtle)" }}
+        >
+          {positionPercent !== null && (
+            <div
+              className="metric-progress absolute inset-y-0 left-0 rounded-full"
+              style={{
+                width: `${positionPercent}%`,
+                background: "var(--color-accent)",
+                transition: "width var(--transition-normal)",
+              }}
+            />
+          )}
+        </div>
+
+        {/* Current rate label */}
+        {cotizacionActual !== undefined && (
+          <p className="mt-2 text-center text-xs" style={{ color: "var(--text-muted)" }}>
+            Cotizacion actual: {formatARS(cotizacionActual)}
+          </p>
         )}
-      </div>
 
-      {/* Current rate label */}
-      {cotizacionActual !== undefined && (
-        <p className="mt-2 text-center text-xs" style={{ color: "var(--text-muted)" }}>
-          Cotizacion actual: {formatARS(cotizacionActual)}
-        </p>
-      )}
-
-      {/* Last updated */}
-      <div
-        className="mt-2 flex items-center justify-center gap-1 text-xs"
-        style={{ color: "var(--text-muted)" }}
-      >
-        <Clock size={10} />
-        <span>Actualizado {formatDateOnly(fecha)}</span>
+        {/* Last updated */}
+        <div
+          className="mt-2 flex items-center justify-center gap-1 text-xs"
+          style={{ color: "var(--text-muted)" }}
+        >
+          <Clock size={10} />
+          <span>Actualizado {formatDateOnly(fecha)}</span>
+        </div>
       </div>
     </div>
   );

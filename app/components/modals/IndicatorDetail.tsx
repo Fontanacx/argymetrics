@@ -24,7 +24,12 @@ import type {
 } from "@/lib/types";
 import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { computeMetrics } from "@/lib/formatters/metrics";
-import { formatARS, formatPercent, formatPoints } from "@/lib/formatters/currency";
+import {
+  formatARS,
+  formatPercent,
+  formatPercentUnsigned,
+  formatPoints,
+} from "@/lib/formatters/currency";
 import { formatShortDate, formatMonthYear, formatDateTime } from "@/lib/formatters/date";
 
 // ---------------------------------------------------------------------------
@@ -62,6 +67,15 @@ interface CommodityDetailProps {
   definition: string;
 }
 
+interface MacroDetailProps {
+  kind: "macro";
+  data: { fecha: string; valor: number }[];
+  label: string;
+  definition: string;
+  /** Percentages for salaries/activity/poverty, ARS for baskets. */
+  format: "percent" | "ars";
+}
+
 interface CryptoDetailProps {
   kind: "crypto";
   data: CryptoHistoryEntry[];
@@ -92,7 +106,7 @@ interface BandasDetailProps {
   cotizacionActual?: number;
 }
 
-type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps | StockDetailProps | IndexDetailProps) & { updateTime?: string };
+type IndicatorDetailProps = (DollarDetailProps | RiesgoDetailProps | InflacionDetailProps | CommodityDetailProps | CryptoDetailProps | BandasDetailProps | StockDetailProps | IndexDetailProps | MacroDetailProps) & { updateTime?: string };
 
 // ---------------------------------------------------------------------------
 // Range options — different presets for inflation (monthly data)
@@ -134,7 +148,7 @@ const STOCK_RANGES: RangeOption[] = [
  * Modal content for indicator detail: definition, spread, chart, and metrics.
  */
 export default function IndicatorDetail(props: IndicatorDetailProps) {
-  const ranges = props.kind === "inflacion" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" || props.kind === "index" ? STOCK_RANGES : DOLLAR_RANGES));
+  const ranges = props.kind === "inflacion" || props.kind === "macro" ? INFLACION_RANGES : (props.kind === "bandas" ? BANDAS_RANGES : (props.kind === "stock" || props.kind === "index" ? STOCK_RANGES : DOLLAR_RANGES));
   // Dollar charts default to 24H tab; all others default to the second option (index 1)
   const defaultRange = props.kind === "dollar" ? ranges[0].value : (ranges[1]?.value ?? ranges[0].value);
   const [rangeValue, setRangeValue] = useState(defaultRange);
@@ -146,7 +160,10 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
   const values = props.kind !== "bandas" ? chartData.map((d) => d.value as number) : [];
   const metrics = props.kind !== "bandas" ? computeMetrics(values) : null;
 
-  const formatValue = getValueFormatter(props.kind);
+  const formatValue = getValueFormatter(
+    props.kind,
+    props.kind === "macro" ? props.format : undefined
+  );
   const marketStatus = getMarketStatus(props.kind);
 
   // Previous close — computed once per render
@@ -169,7 +186,7 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
 
   // X-axis formatter: date-based for all ranges (data is daily, not intraday)
   const formatLabel =
-    props.kind === "inflacion"
+    props.kind === "inflacion" || props.kind === "macro"
       ? (v: string) => formatMonthYear(v)
       : (v: string) => formatShortDate(v);
 
@@ -185,7 +202,7 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
       </p>
 
       {/* Current Value, Spread & Market Status */}
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}>
+      <div className="metric-tile flex items-center justify-between rounded-lg border px-4 py-3" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}>
         <div>
           <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Valor Actual</p>
           <p className="text-lg font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
@@ -207,7 +224,9 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
         )}
 
         <div className="text-right">
-          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Mercado</p>
+          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+            {props.kind === "macro" ? "Fuente" : "Mercado"}
+          </p>
           <div className="flex items-center justify-end gap-1.5 mt-0.5">
             <div className="w-2 h-2 rounded-full" style={{ background: marketStatus.color }} />
             <span className="text-sm font-semibold tracking-tight" style={{ color: marketStatus.color }}>{marketStatus.text}</span>
@@ -250,13 +269,18 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
       {props.kind === "bandas" ? (
         <BandasMetricCards data={props.data as BandaHistoryEntry[]} cotizacionActual={props.cotizacionActual} />
       ) : metrics ? (
-        <MetricCards metrics={metrics} formatValue={formatValue} kind={props.kind} />
+        <MetricCards
+          metrics={metrics}
+          formatValue={formatValue}
+          kind={props.kind}
+          currentValue={values[values.length - 1]}
+        />
       ) : null}
 
       {/* Cierre anterior card */}
       {(props.kind === "dollar" || props.kind === "stock" || props.kind === "index") && previousClose !== null && (
         <div
-          className="rounded-lg border px-4 py-3 flex items-center justify-between"
+          className="metric-tile rounded-lg border px-4 py-3 flex items-center justify-between"
           style={{ borderColor: "var(--border-subtle)", background: "var(--bg-primary)" }}
         >
           <div>
@@ -310,7 +334,13 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
                 axisLine={false}
                 tickLine={false}
                 width={55}
-                tickFormatter={(v: number) => getYAxisLabel(props.kind, v)}
+                tickFormatter={(v: number) =>
+                  getYAxisLabel(
+                    props.kind,
+                    v,
+                    props.kind === "macro" ? props.format : undefined
+                  )
+                }
               />
               <Tooltip
                 contentStyle={{
@@ -388,10 +418,19 @@ export default function IndicatorDetail(props: IndicatorDetailProps) {
 // Helpers
 // ---------------------------------------------------------------------------
 
+interface ChartPoint {
+  fecha: string;
+  value?: number;
+  range?: number[];
+  piso?: number;
+  techo?: number;
+  oficial?: number;
+}
+
 function buildChartData(
   props: IndicatorDetailProps,
   count: number
-): any[] {
+): ChartPoint[] {
   if (props.kind === "bandas") {
     return (props.data as BandaHistoryEntry[])
       .slice(-count)
@@ -407,23 +446,45 @@ function buildChartData(
       .slice(-count)
       .map((d) => ({ fecha: d.fecha, value: d.valor }));
   }
+  if (props.kind === "macro") {
+    return props.data
+      .slice(-count)
+      .map((d) => ({ fecha: d.fecha, value: d.valor }));
+  }
   // inflacion
   return (props.data as InflacionMensual[])
     .slice(-count)
     .map((d) => ({ fecha: d.fecha, value: d.valor }));
 }
 
-function getValueFormatter(kind: string): (v: number) => string {
+function getValueFormatter(
+  kind: string,
+  macroFormat?: "percent" | "ars"
+): (v: number) => string {
   if (kind === "dollar" || kind === "stock") return (v) => formatARS(v);
   if (kind === "riesgo") return (v) => `${formatPoints(v)} pts`;
   if (kind === "commodity" || kind === "crypto") return (v) => `US$ ${v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (kind === "index") return (v) => v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (kind === "macro") {
+    return macroFormat === "ars"
+      ? (v) => formatARS(v)
+      : (v) => formatPercentUnsigned(v);
+  }
   return (v) => formatPercent(v); // inflacion
 }
 
-function getYAxisLabel(kind: string, v: number): string {
+function getYAxisLabel(
+  kind: string,
+  v: number,
+  macroFormat?: "percent" | "ars"
+): string {
   if (kind === "dollar" || kind === "bandas" || kind === "stock") return `$${v.toLocaleString("es-AR")}`;
   if (kind === "inflacion") return `${v}%`;
+  if (kind === "macro") {
+    return macroFormat === "ars"
+      ? `$${v.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`
+      : `${v}%`;
+  }
   if (kind === "commodity" || kind === "crypto") return `US$ ${v.toLocaleString("es-AR")}`;
   if (kind === "index") return v.toLocaleString("es-AR", { maximumFractionDigits: 0 });
   return v.toLocaleString("es-AR");
@@ -433,7 +494,7 @@ function getStrokeColor(kind: string, isPositive: boolean): string {
   if (kind === "riesgo") {
     return isPositive ? "var(--color-negative)" : "var(--color-positive)";
   }
-  if (kind === "inflacion") {
+  if (kind === "inflacion" || kind === "macro") {
     return "var(--color-accent)";
   }
   if (kind === "commodity" || kind === "crypto" || kind === "stock" || kind === "index") {
@@ -443,6 +504,9 @@ function getStrokeColor(kind: string, isPositive: boolean): string {
 }
 
 function getMarketStatus(kind: string): { text: string; color: string } {
+  if (kind === "macro") {
+    return { text: "INDEC", color: "var(--color-accent)" };
+  }
   if (kind === "crypto") return { text: "Operando 24/7", color: "var(--color-positive)" };
   const now = new Date();
   const day = now.getDay();
@@ -464,15 +528,20 @@ function MetricCards({
   metrics,
   formatValue,
   kind,
+  currentValue,
 }: {
   metrics: HistoryMetrics;
   formatValue: (v: number) => string;
   kind: string;
+  currentValue?: number;
 }) {
   const changeColor = (() => {
     if (metrics.changePercent === 0) return "var(--color-neutral)";
     if (kind === "riesgo") {
       return metrics.changePercent > 0 ? "var(--color-negative)" : "var(--color-positive)";
+    }
+    if (kind === "macro") {
+      return "var(--color-accent)";
     }
     return metrics.changePercent > 0 ? "var(--color-positive)" : "var(--color-negative)";
   })();
@@ -481,7 +550,18 @@ function MetricCards({
     { label: "Maximo", value: formatValue(metrics.high) },
     { label: "Minimo", value: formatValue(metrics.low) },
     { label: "Promedio", value: formatValue(metrics.average) },
-    { label: "Variacion", value: formatPercent(metrics.changePercent), color: changeColor },
+    kind === "macro"
+      ? {
+          label: "Actual",
+          value:
+            currentValue === undefined ? "--" : formatValue(currentValue),
+          color: "var(--color-accent)",
+        }
+      : {
+          label: "Variacion",
+          value: formatPercent(metrics.changePercent),
+          color: changeColor,
+        },
   ];
 
   return (
@@ -489,7 +569,7 @@ function MetricCards({
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-lg border px-3 py-2"
+          className="metric-tile rounded-lg border px-3 py-2"
           style={{
             borderColor: "var(--border-subtle)",
             background: "var(--bg-primary)",
@@ -525,7 +605,7 @@ function SpreadIndicator({
 
   return (
     <div
-      className="flex items-center gap-3 rounded-lg border px-4 py-3"
+      className="metric-tile flex items-center gap-3 rounded-lg border px-4 py-3"
       style={{
         borderColor: "var(--border-subtle)",
         background: "var(--bg-primary)",
@@ -591,7 +671,7 @@ function BandasMetricCards({ data, cotizacionActual }: { data: BandaHistoryEntry
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-lg border px-3 py-2"
+          className="metric-tile rounded-lg border px-3 py-2"
           style={{
             borderColor: "var(--border-subtle)",
             background: "var(--bg-primary)",

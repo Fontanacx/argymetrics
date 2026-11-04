@@ -30,7 +30,7 @@ export default function StockCard({ stock, currency = "ARS" }: StockCardProps) {
 
   return (
     <article
-      className="flex flex-col gap-3 rounded-xl border p-4 transition-shadow h-full"
+      className="metric-card flex flex-col gap-3 rounded-xl border p-4 transition-shadow h-full"
       style={{
         background: "var(--bg-card)",
         borderColor: "var(--border-primary)",
@@ -47,7 +47,7 @@ export default function StockCard({ stock, currency = "ARS" }: StockCardProps) {
                 width={36}
                 height={36}
                 loading="lazy"
-                className="shrink-0 rounded-md"
+                className="metric-card-avatar shrink-0 rounded-md"
                 style={{ width: 36, height: 36 }}
               />
             )}
@@ -68,7 +68,7 @@ export default function StockCard({ stock, currency = "ARS" }: StockCardProps) {
               </div>
             )}
           </div>
-          <span className="text-xs font-medium truncate w-full" style={{ color: "var(--text-muted)" }} title={name}>
+          <span className="metric-card-subtitle text-xs font-medium truncate w-full" style={{ color: "var(--text-muted)" }} title={name}>
             {name}
           </span>
         </div>
@@ -77,17 +77,17 @@ export default function StockCard({ stock, currency = "ARS" }: StockCardProps) {
         </div>
       </div>
 
-      <div className="mt-1 mb-2">
+      <div className="metric-card-sparkline mt-1 mb-2">
         <SparklineChart data={history} positive={trendPositive} strokeColor="var(--color-accent)" dataKey="valor" formatType="dollar" />
       </div>
 
       <div className="flex flex-col gap-1 mt-auto pt-2 border-t" style={{ borderColor: "var(--border-subtle)" }}>
         <div className="flex justify-between items-baseline">
-           <span className="text-xl font-bold tabular-nums tracking-tight" style={{ color: "var(--text-primary)" }}>
+           <span className="metric-card-value text-xl font-bold tabular-nums tracking-tight" style={{ color: "var(--text-primary)" }}>
             {formatPrice(price)}
            </span>
         </div>
-        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center text-[10px] mt-1 gap-1.5 sm:gap-2">
+        <div className="metric-card-extra flex flex-col sm:flex-row sm:justify-between items-start sm:items-center text-[10px] mt-1 gap-1.5 sm:gap-2">
           <div className="flex flex-col sm:flex-row gap-x-2 gap-y-0.5 min-w-0 overflow-hidden">
             <span className="truncate" style={{ color: "var(--text-muted)" }}>Min <span className="font-semibold" style={{ color: "var(--text-primary)" }}>{formatPrice(low)}</span></span>
             <span className="truncate" style={{ color: "var(--text-muted)" }}>Max <span className="font-semibold" style={{ color: "var(--text-primary)" }}>{formatPrice(high)}</span></span>

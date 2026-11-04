@@ -22,7 +22,7 @@ export default function InfoButton({ title, children }: InfoButtonProps) {
       <button
         onClick={() => setOpen(true)}
         aria-label={`Mas informacion sobre ${title}`}
-        className="flex h-7 w-7 items-center justify-center rounded-md transition-all hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-secondary)] active:scale-95 active:bg-[var(--bg-secondary)]"
+        className="metric-info-button flex h-7 w-7 items-center justify-center rounded-md transition-all hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-secondary)] active:scale-95 active:bg-[var(--bg-secondary)]"
         style={{ color: "var(--text-muted)" }}
       >
         <Info size={16} />

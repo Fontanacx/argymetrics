@@ -1,6 +1,6 @@
-import { AlertTriangle, Percent, Clock, Coins, Droplet, Flame, Landmark } from "lucide-react";
+import { AlertTriangle, Percent, Coins, Droplet, Flame, Landmark } from "lucide-react";
 import type { RiesgoPais, InflacionMensual, RiesgoPaisHistoryEntry, CommodityQuote, ReservasBCRA, ReservasHistoryEntry } from "@/lib/types";
-import { formatPoints, formatPercent, formatUSD } from "@/lib/formatters/currency";
+import { formatPoints, formatPercentUnsigned, formatUSD } from "@/lib/formatters/currency";
 import { formatDateOnly, formatMonthYear } from "@/lib/formatters/date";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
 import IndicatorCard from "./IndicatorCard";
@@ -17,6 +17,14 @@ interface IndicatorsStripProps {
   gasHistory?: { fecha: string; valor: number }[];
   reservas?: ReservasBCRA | null;
   reservasHistory?: ReservasHistoryEntry[];
+}
+
+function CommodityChangeBadge({ changePercent }: { changePercent: number }) {
+  return <VariationBadge value={changePercent} />;
+}
+
+function RiesgoChangeBadge({ changePercent }: { changePercent: number }) {
+  return <VariationBadge value={changePercent} />;
 }
 
 /**
@@ -58,14 +66,6 @@ export default function IndicatorsStrip({
     reservasHistory.length >= 2
       ? reservasHistory[reservasHistory.length - 1].valor >= reservasHistory[reservasHistory.length - 2].valor
       : true;
-
-  function CommodityChangeBadge({ changePercent }: { changePercent: number }) {
-    return <VariationBadge value={changePercent} />;
-  }
-
-  function RiesgoChangeBadge({ changePercent }: { changePercent: number }) {
-    return <VariationBadge value={changePercent} />;
-  }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -111,7 +111,7 @@ export default function IndicatorsStrip({
         iconBg="var(--color-accent-light)"
         iconColor="var(--color-accent)"
         label="Inflacion Mensual (IPC)"
-        value={inflacion ? formatPercent(inflacion.valor) : ""}
+        value={inflacion ? formatPercentUnsigned(inflacion.valor) : ""}
         dateLabel={inflacion ? formatMonthYear(inflacion.fecha) : undefined}
         infoModal={{
           title: "Inflacion Mensual",
@@ -131,7 +131,22 @@ export default function IndicatorsStrip({
               }
             : undefined
         }
-      />
+      >
+        {inflacion &&
+          (inflacion.interanual !== undefined || inflacion.acumulada !== undefined) && (
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              {inflacion.interanual !== undefined
+                ? `Interanual ${formatPercentUnsigned(inflacion.interanual)}`
+                : ""}
+              {inflacion.interanual !== undefined && inflacion.acumulada !== undefined
+                ? " · "
+                : ""}
+              {inflacion.acumulada !== undefined
+                ? `Acum. ${formatPercentUnsigned(inflacion.acumulada)}`
+                : ""}
+            </p>
+          )}
+      </IndicatorCard>
 
       {/* Oro */}
       <IndicatorCard

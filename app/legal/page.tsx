@@ -79,12 +79,22 @@ const DATA_SOURCES = [
   {
     name: "DolarAPI",
     url: "https://dolarapi.com",
-    description: "Cotizaciones USD/EUR/BRL, tipos de cambio billetera y variantes del dólar.",
+    description: "Cotizaciones oficiales USD/EUR/BRL y variantes del dólar (blue, MEP, CCL, tarjeta).",
   },
   {
     name: "ArgentinaDatos",
     url: "https://api.argentinadatos.com",
-    description: "Series históricas del dólar, Riesgo País e Inflación (IPC — INDEC).",
+    description: "Series históricas del dólar y del Riesgo País; fallback del IPC cuando la API del INDEC no está disponible.",
+  },
+  {
+    name: "INDEC",
+    url: "https://api.indec.gob.ar",
+    description: "IPC oficial, salario real, actividad económica (EMAE), canastas básicas, pobreza e inflación por región.",
+  },
+  {
+    name: "ComparaPix",
+    url: "https://comparapix.ar",
+    description: "Cotizaciones PIX de Real brasileño en Mercado Pago y billeteras virtuales.",
   },
   {
     name: "Yahoo Finance",
@@ -94,12 +104,12 @@ const DATA_SOURCES = [
   {
     name: "CriptoYa",
     url: "https://criptoya.com/api",
-    description: "Precios de criptomonedas (BTC, ETH) en el mercado argentino.",
+    description: "Precios de criptomonedas (BTC, ETH) y cotizaciones de dólar en billeteras virtuales.",
   },
   {
     name: "Ámbito Financiero",
     url: "https://mercados.ambito.com",
-    description: "Variantes del tipo de cambio del Real Brasileño.",
+    description: "Riesgo País y variantes del tipo de cambio del Real Brasileño.",
   },
 ] as const;
 

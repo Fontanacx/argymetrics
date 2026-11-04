@@ -1,5 +1,5 @@
 import type { DollarWithHistory, DollarHistoryEntry } from "@/lib/types";
-import { formatARS, formatSpread } from "@/lib/formatters/currency";
+import { formatARS } from "@/lib/formatters/currency";
 import { CASA_LABELS, WALLET_COLORS } from "@/lib/constants";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
 import { VariationBadge } from "@/app/components/ui";
@@ -34,7 +34,7 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
 
   return (
     <article
-      className="flex flex-col gap-3 rounded-xl border p-4 transition-shadow"
+      className="metric-card flex flex-col gap-3 rounded-xl border p-4 transition-shadow"
       style={{
         background: "var(--bg-card)",
         borderColor: "var(--border-primary)",
@@ -68,7 +68,7 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
       </div>
 
       {/* 7-day sparkline */}
-      <div className="mt-1 mb-2">
+      <div className="metric-card-sparkline mt-1 mb-2">
         <SparklineChart data={history} positive={trendPositive} strokeColor={brandColor} />
       </div>
 
@@ -79,14 +79,14 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
             {/* Normal two-sided market: show both compra and venta */}
             <div className="flex justify-between items-center text-sm">
               <span className="font-medium" style={{ color: "var(--text-primary)" }}>Compra</span>
-              <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
+              <span className="metric-card-value font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
                 {formatARS(rate.compra)}
               </span>
             </div>
             {rate.venta > 0 && (
               <div className="flex justify-between items-center text-sm">
                 <span className="font-medium" style={{ color: "var(--text-muted)" }}>Venta</span>
-                <span className="font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
+                <span className="metric-card-value font-semibold tabular-nums tracking-tight text-base" style={{ color: "var(--text-muted)" }}>
                   {formatARS(rate.venta)}
                 </span>
               </div>
@@ -96,7 +96,7 @@ export default function DollarCard({ dollar, fullHistory, spread }: DollarCardPr
           /* One-sided market (e.g. Dólar Cripto / USDT): only show venta as primary price */
           <div className="flex justify-between items-center text-sm">
             <span className="font-medium" style={{ color: "var(--text-primary)" }}>Precio</span>
-            <span className="font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
+            <span className="metric-card-value font-bold tabular-nums tracking-tight text-base" style={{ color: "var(--text-primary)" }}>
               {rate.venta > 0 ? formatARS(rate.venta) : "—"}
             </span>
           </div>

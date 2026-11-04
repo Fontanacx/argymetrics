@@ -12,6 +12,17 @@ export const REVALIDATE_INDICES = 300; // 5 minutes, same as stocks
 export const REVALIDATE_INTERNATIONAL_STOCKS = 300;
 export const REVALIDATE_RESERVAS = 3600;
 export const BCRA_BASE = "https://api.bcra.gob.ar";
+export const INDEC_BASE = "https://api.indec.gob.ar/v1";
+export const COMPARAPIX_BASE = "https://api.comparapix.ar";
+
+/** ComparaPix refreshes PIX/BRL quotes roughly every five minutes. */
+export const REVALIDATE_BRL_WALLETS = 120;
+
+/** INDEC publica IPC, salarios, EMAE y canastas con frecuencia mensual. */
+export const REVALIDATE_INDEC_MONTHLY = 21600; // 6 horas
+
+/** Pobreza e indigencia se publican con frecuencia semestral. */
+export const REVALIDATE_INDEC_SEMESTER = 86400; // 24 horas
 
 // ---------------------------------------------------------------------------
 // Synthetic exchange rate multipliers

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import ThemeToggle from "../ThemeToggle";
+import CardStylePicker from "../dashboard/CardStylePicker";
 import BrandLogo from "./BrandLogo";
 
 /**
@@ -12,11 +14,14 @@ import BrandLogo from "./BrandLogo";
  */
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   const navLinks = [
     { href: "/#divisas", label: "Divisas" },
     { href: "/#billeteras", label: "Billeteras" },
     { href: "/#indicadores", label: "Indicadores" },
+    { href: "/#economia-real", label: "Economía" },
     { href: "/comparador", label: "Comparador" },
     { href: "/#acciones", label: "Acciones" },
     { href: "/insights", label: "Resumen" },
@@ -69,6 +74,7 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {isHome && <CardStylePicker />}
           <div className="pl-2 border-l" style={{ borderColor: "var(--border-subtle)" }}>
             <ThemeToggle />
           </div>
@@ -109,6 +115,15 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {isHome && (
+            <div
+              className="border-t pt-2"
+              style={{ borderColor: "var(--border-subtle)" }}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <CardStylePicker showLabel />
+            </div>
+          )}
         </div>
       )}
     </nav>

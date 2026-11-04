@@ -161,6 +161,14 @@ export default function RootLayout({
                   if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                     document.documentElement.classList.add('dark');
                   }
+                  var cardLayout = localStorage.getItem('argymetrics-card-layout');
+                  var cardShape = localStorage.getItem('argymetrics-card-shape');
+                  if (cardLayout === 'compact' || cardLayout === 'classic' || cardLayout === 'detailed') {
+                    document.documentElement.dataset.cardLayout = cardLayout;
+                  }
+                  if (cardShape === 'soft' || cardShape === 'round' || cardShape === 'square') {
+                    document.documentElement.dataset.cardShape = cardShape;
+                  }
                 } catch(e) {}
               })();
             `,

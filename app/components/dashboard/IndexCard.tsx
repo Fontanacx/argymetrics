@@ -20,7 +20,7 @@ function formatIndexValue(index: MarketIndex): string {
 }
 
 export default function IndexCard({ index }: { index: MarketIndex }) {
-  const { symbol, name, value, variation, high, low, history, updatedAt } = index;
+  const { symbol, name, variation, high, low, history, updatedAt } = index;
   const trendPositive = variation !== null ? variation >= 0 : true;
 
   const formattedHigh =
@@ -35,7 +35,7 @@ export default function IndexCard({ index }: { index: MarketIndex }) {
 
   return (
     <article
-      className="flex flex-col gap-3 rounded-xl border p-4 transition-shadow h-full"
+      className="metric-card flex flex-col gap-3 rounded-xl border p-4 transition-shadow h-full"
       style={{
         background: "var(--bg-card)",
         borderColor: "var(--border-primary)",
@@ -69,7 +69,7 @@ export default function IndexCard({ index }: { index: MarketIndex }) {
             )}
           </div>
           <span
-            className="text-xs font-medium truncate w-full"
+            className="metric-card-subtitle text-xs font-medium truncate w-full"
             style={{ color: "var(--text-muted)" }}
             title={symbol}
           >
@@ -81,7 +81,7 @@ export default function IndexCard({ index }: { index: MarketIndex }) {
         </div>
       </div>
 
-      <div className="mt-1 mb-2">
+      <div className="metric-card-sparkline mt-1 mb-2">
         <SparklineChart
           data={history}
           positive={trendPositive}
@@ -97,13 +97,13 @@ export default function IndexCard({ index }: { index: MarketIndex }) {
       >
         <div className="flex justify-between items-baseline">
           <span
-            className="text-xl font-bold tabular-nums tracking-tight"
+            className="metric-card-value text-xl font-bold tabular-nums tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
             {formatIndexValue(index)}
           </span>
         </div>
-        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center text-[10px] mt-1 gap-1.5 sm:gap-2">
+        <div className="metric-card-extra flex flex-col sm:flex-row sm:justify-between items-start sm:items-center text-[10px] mt-1 gap-1.5 sm:gap-2">
           <div className="flex flex-col sm:flex-row gap-x-2 gap-y-0.5 min-w-0 overflow-hidden">
             <span className="truncate" style={{ color: "var(--text-muted)" }}>
               Min{" "}

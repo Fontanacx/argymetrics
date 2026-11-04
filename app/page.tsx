@@ -4,8 +4,14 @@ import {
   TickerSection,
   DollarsSection,
   DollarsSectionSkeleton,
+  BrlWalletsSection,
+  BrlWalletsSectionSkeleton,
+  LatamCurrenciesSection,
+  LatamCurrenciesSectionSkeleton,
   IndicatorsSection,
   IndicatorsSectionSkeleton,
+  MacroSection,
+  MacroSectionSkeleton,
   MarketsSection,
   MarketsSectionSkeleton,
   CryptosSection,
@@ -43,8 +49,20 @@ export default function Home() {
           <DollarsSection />
         </Suspense>
 
+        <Suspense fallback={<BrlWalletsSectionSkeleton />}>
+          <BrlWalletsSection />
+        </Suspense>
+
+        <Suspense fallback={<LatamCurrenciesSectionSkeleton />}>
+          <LatamCurrenciesSection />
+        </Suspense>
+
         <Suspense fallback={<IndicatorsSectionSkeleton />}>
           <IndicatorsSection />
+        </Suspense>
+
+        <Suspense fallback={<MacroSectionSkeleton />}>
+          <MacroSection />
         </Suspense>
 
         <HistoricalComparisonCta />

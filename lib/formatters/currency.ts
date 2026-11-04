@@ -29,6 +29,12 @@ const pointsFormatter = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0,
 });
 
+const unsignedPercentFormatter = new Intl.NumberFormat("es-AR", {
+  style: "decimal",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 /**
  * Formats a number as Argentine Pesos with 2 decimals.
  * Example: 1415.5 → "$ 1.415,50"
@@ -59,6 +65,15 @@ export function formatPercent(value: number): string {
  */
 export function formatPoints(value: number): string {
   return pointsFormatter.format(value).replace(/[\u00A0\u202F]/g, ' ');
+}
+
+/**
+ * Formats a percentage without a leading sign.
+ * Useful for rates where the sign is not meaningful (poverty, IPC regional).
+ * Example: 32.3 → "32,3%"
+ */
+export function formatPercentUnsigned(value: number): string {
+  return `${unsignedPercentFormatter.format(value)}%`.replace(/[\u00A0\u202F]/g, ' ');
 }
 
 /**

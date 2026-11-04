@@ -23,20 +23,26 @@
 | Categoria | Fuente | Revalidacion |
 |---|---|---|
 | Divisas (Blue, Oficial, MEP, CCL, Cripto, Tarjeta, Euro, Real) | DolarAPI | 0s (always fresh) |
-| Riesgo Pais, Inflacion (IPC), Reservas BCRA | ArgentinaDatos / Ambito / BCRA | 2 min |
+| Inflacion oficial (IPC), salario real, EMAE, canastas, IPC regional y pobreza | INDEC API | 6 h / 24 h |
+| Real en billeteras (Mercado Pago, Belo, Lemon, AstroPay, etc.) | ComparaPix | 2 min |
+| Riesgo Pais, Reservas BCRA | Ambito / BCRA | 2 min |
 | Criptomonedas (BTC, ETH) | Yahoo Finance | 1 min |
 | Commodities (Oro, Brent, Gas Natural) | Yahoo Finance | 5 min |
 | Acciones Argentinas (11 empresas BYMA) | Yahoo Finance | 5 min |
 | Acciones Internacionales (7 empresas NASDAQ/KRX) | Yahoo Finance | 5 min |
 | Indices (Merval, S&P 500, Nasdaq, Dow Jones) | Yahoo Finance | 5 min |
-| Billeteras Virtuales (AstroPay, Lemon, Belo, etc.) | CriptoYa | 1 min |
+| Billeteras Virtuales (AstroPay, Lemon, Belo, Ripio, Fiwind, etc.) | CriptoYa | 1 min |
 | Monedas LATAM (MXN, COP, UYU, PEN, CLP, PYG) | DolarAPI / ER-API | 1 min |
 
 ## Experiencia del producto
 
+- **Economía real**: salario real contra IPC, actividad económica (EMAE), canasta básica, pobreza e inflación por región, con datos oficiales del INDEC.
+- **Real en billeteras**: cotizaciones PIX de Mercado Pago, Belo, Lemon, AstroPay y otras billeteras, con precio para pagar y para cobrar.
+- **Otras monedas**: MXN, COP, UYU, PEN, CLP y PYG en el panel principal y en el conversor.
 - **Comparador histórico**: contrasta Dólar Blue, MEP, Riesgo País e Inflación en períodos de 7, 30, 90 días, 1 año o un rango personalizado.
 - **Lectura relativa base 100**: permite comparar tendencias con unidades distintas sin perder los valores nominales.
 - **Valores reales en contexto**: el gráfico muestra el dato porcentual y el valor monetario, en puntos o porcentual según la serie; el resumen incluye inicio, final, diferencia y variación.
+- **Vista de tarjetas personalizable**: elegí entre diseño compacto, clásico o detallado y forma suave, circular o recta. La preferencia se guarda en el navegador.
 - **Dashboard responsive**: navegación y comparador optimizados para escritorio, tablet y móvil, con soporte de tema claro y oscuro.
 - **Identidad completa**: lockups horizontal y apilado, isotipo, favicon, íconos PWA, Open Graph y metadata estructurada para buscadores y redes.
 
@@ -79,7 +85,7 @@ Para probar el comparador localmente, iniciá el proyecto con `pnpm dev`, abrí 
 | Tailwind CSS v4 | Dark mode, responsive |
 | Recharts 3 | Sparklines + graficos historicos |
 | Lucide React | Iconos |
-| DolarAPI / ArgentinaDatos / Yahoo Finance / CriptoYa | Fuentes de datos |
+| DolarAPI / ArgentinaDatos / INDEC / ComparaPix / Yahoo Finance / CriptoYa | Fuentes de datos |
 
 ## Desarrollo local
 
@@ -93,6 +99,16 @@ pnpm dev
 
 Abre [http://localhost:3000](http://localhost:3000).
 
+### Variables de entorno
+
+La API del INDEC requiere un JWT. Creá un archivo `.env.local` (ya está ignorado por git) con:
+
+```bash
+INDEC_API_TOKEN=tu_token
+```
+
+El token se usa solo del lado del servidor. Si falta o la API falla, la inflación cae a ArgentinaDatos y el resto de los indicadores del INDEC se ocultan sin romper el dashboard.
+
 ### Regenerar logos corporativos
 
 ```bash
@@ -104,7 +120,7 @@ pwsh scripts/download-logos.ps1
 ```
 lib/
   types/index.ts          Tipos TypeScript unificados
-  api/                    10 modulos de fetching (dollars, stocks, crypto, etc.)
+  api/                    modulos de fetching (dollars, stocks, crypto, indec, etc.)
   constants/              Configuracion, tickers, labels, revalidacion
   formatters/             currency.ts, date.ts, metrics.ts
   utils/                  insights.ts, semaforo.ts, briefing-generator.ts

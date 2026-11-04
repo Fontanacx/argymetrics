@@ -83,6 +83,30 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
     "La cotización de Buenbit refleja el precio de compra/venta de dólares digitales (criptomonedas atadas al dólar) en su plataforma. " +
     "Es un indicador de referencia para el ecosistema de finanzas descentralizadas local.",
 
+  ripio:
+    "El Dólar Ripio es la cotización de compra/venta de USDT u otros activos digitales atados al dólar dentro de la app Ripio. " +
+    "Es una referencia del dólar cripto minorista y permite operar sin pasar por el mercado bancario tradicional.",
+
+  fiwind:
+    "El Dólar Fiwind refleja el tipo de cambio implícito al operar stablecoins en Fiwind. " +
+    "La plataforma está orientada a pagos internacionales y a la conversión entre pesos y dólares digitales.",
+
+  satoshitango:
+    "El Dólar SatoshiTango es la cotización de compra/venta de stablecoins (USDT/USDC) en una de las plataformas cripto más antiguas de Argentina. " +
+    "Se usa como referencia del dólar cripto y de la liquidez del mercado local.",
+
+  decrypto:
+    "El Dólar Decrypto es el precio implícito de las stablecoins en Decrypto. " +
+    "Refleja una alternativa de dólar digital operada por un exchange local y suele moverse junto al dólar cripto general.",
+
+  takenos:
+    "El Dólar Takenos es la cotización de dólares digitales dentro de Takenos, una billetera enfocada en cobros y pagos internacionales. " +
+    "Es una referencia para freelancers que cobran en el exterior y convierten a pesos.",
+
+  wallbit:
+    "El Dólar Wallbit refleja la cotización de dólares digitales en Wallbit, una cuenta internacional para cobrar y mantener saldos en moneda extranjera. " +
+    "Se usa como referencia para ingresos del exterior y conversión a pesos.",
+
   euro:
     "El Euro Oficial es la cotización de la moneda europea regulada por el Banco Central (BCRA). " +
     "Se utiliza principalmente para operaciones de comercio exterior formal que involucran a la Unión Europea.",
@@ -103,6 +127,31 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
   gas:
     "El Gas Natural (Henry Hub Futures) es la principal referencia del mercado de gas en Norteamérica. " +
     "Su precio es un indicador clave de los costos energéticos globales, influyendo fuertemente en la industria y la economía a nivel internacional.",
+
+  salarioReal:
+    "El salario real mide la evolución del poder de compra de los salarios: compara la variación del Índice de Salarios del INDEC " +
+    "contra la inflación (IPC) del mismo período. Un valor positivo significa que los salarios crecieron por encima de los precios; " +
+    "uno negativo, que perdieron poder de compra. Es un dato mensual y se publica con las mismas demoras que el IPC.",
+
+  actividad:
+    "El Estimador Mensual de Actividad Económica (EMAE) es un indicador provisorio del nivel de actividad de la economía argentina, " +
+    "publicado por el INDEC. La variación interanual compara el mes contra el mismo mes del año anterior y permite ver si la economía " +
+    "se expande o se contrae. Es un dato mensual, con aproximadamente seis semanas de demora.",
+
+  canasta:
+    "La Canasta Básica Alimentaria (CBA) y la Canasta Básica Total (CBT) valorizan los bienes y servicios mínimos para cubrir las " +
+    "necesidades de un hogar. La CBT incluye alimentos y bienes/servicios no alimentarios. Mostramos el Hogar 2 del INDEC, compuesto por " +
+    "cuatro integrantes, en el Gran Buenos Aires. Es la referencia oficial para medir la línea de pobreza.",
+
+  pobreza:
+    "La tasa de pobreza mide el porcentaje de personas cuyos ingresos están por debajo de la línea de pobreza. El dato del INDEC " +
+    "corresponde al total de 31 aglomerados urbanos y se publica con frecuencia semestral. La indigencia aplica la línea de la CBA. " +
+    "No es una medición del total del país: excluye áreas rurales y algunos aglomerados.",
+
+  ipcRegional:
+    "El IPC por región muestra la variación de precios en las seis regiones estadísticas que publica el INDEC: GBA, Pampeana, Noreste, " +
+    "Noroeste, Cuyo y Patagonia. La API oficial no tiene apertura por provincia; cada región agrupa varias provincias. " +
+    "Sirve para comparar la inflación local con el promedio nacional.",
 
   realblue:
     "El Real Blue es la cotización del real brasileño en el mercado informal argentino. " +

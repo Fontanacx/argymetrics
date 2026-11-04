@@ -84,6 +84,17 @@ export function formatMonthYear(dateStr: string): string {
 }
 
 /**
+ * Formats an INDEC semester period.
+ * Example: "20261S" → "1er semestre 2026"
+ */
+export function formatSemesterPeriod(period: string): string {
+  const match = /^(\d{4})([12])S$/.exec(period);
+  if (!match) return period;
+  const [, year, semester] = match;
+  return `${semester === "1" ? "1er" : "2do"} semestre ${year}`;
+}
+
+/**
  * Formats a date string as a date-only string (no time).
  * Example: "2026-03-13" → "13/03/2026"
  */

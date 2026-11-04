@@ -10,6 +10,7 @@ import DailyInsights from "@/app/components/DailyInsights";
 import { DatePicker } from "@/app/components/insights/DatePicker";
 import { computeSemaforo } from "@/lib/utils/semaforo";
 import { generateBriefingText } from "@/lib/utils/briefing-generator";
+import { formatMonthYear } from "@/lib/formatters/date";
 import type { BriefingInput } from "@/lib/types";
 
 export const revalidate = 0;
@@ -191,7 +192,10 @@ export default async function InsightsPage(props: { searchParams: Promise<{ [key
     brechaBlueOficial,
     brechaBlueYesterday,
     riesgoPais: { value: rp.val, weeklyChange: rpWeeklyChange },
-    inflacion: { value: inflacionVal, date: inflacionDate },
+    inflacion: {
+      value: inflacionVal,
+      date: inflacionDate ? formatMonthYear(inflacionDate) : "",
+    },
     gold: { value: gold.val, variation: gold.var },
     brent: { value: brent.val, variation: brent.var },
     stocks: currentStocks,

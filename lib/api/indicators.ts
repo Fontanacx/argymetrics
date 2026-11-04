@@ -8,6 +8,7 @@ import {
   REVALIDATE_RESERVAS,
 } from "@/lib/constants";
 import { computeBandasAt, todayBuenosAiresISO } from "@/lib/utils/bandas";
+import { fetchIpcNacional, fetchIpcNacionalHistory } from "./indec";
 
 // ---------------------------------------------------------------------------
 // Riesgo Pais
@@ -149,22 +150,15 @@ export async function fetchRiesgoPais(): Promise<RiesgoPais | null> {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches the monthly inflation (IPC) history from ArgentinaDatos and
- * returns only the most recent entry.
+ * Fallback: fetches the monthly inflation (IPC) history from ArgentinaDatos.
  *
- * The API returns the full history as an array sorted ascending by date.
- * Each entry has `{ fecha, valor }` where `valor` is the monthly
- * percentage (e.g. 2.9 means 2.9%) and `fecha` is the month-end date
- * (e.g. "2026-01-31" for January 2026).
- *
- * INDEC publishes with approximately a 6-week lag, so the latest entry
- * being 1-2 months behind the current date is expected behavior.
- *
- * Revalidates hourly since inflation data is published once per month.
+ * Used only when the official INDEC API is unavailable or the token is not
+ * configured. ArgentinaDatos returns the full history as an array sorted
+ * ascending by date, with `{ fecha, valor }` entries.
  *
  * @returns The latest monthly inflation entry, or `null` on failure.
  */
-export async function fetchInflacion(): Promise<InflacionMensual | null> {
+async function fetchInflacionArgentinaDatos(): Promise<InflacionMensual | null> {
   try {
     const res = await fetch(
       `${ARGENTINADATOS_BASE}/v1/finanzas/indices/inflacion`,
@@ -172,7 +166,7 @@ export async function fetchInflacion(): Promise<InflacionMensual | null> {
     );
 
     if (!res.ok) {
-      console.error(`[fetchInflacion] HTTP ${res.status}`);
+      console.error(`[fetchInflacionArgentinaDatos] HTTP ${res.status}`);
       return null;
     }
 
@@ -187,20 +181,17 @@ export async function fetchInflacion(): Promise<InflacionMensual | null> {
 
     return latest;
   } catch (error) {
-    console.error("[fetchInflacion] Network error:", error);
+    console.error("[fetchInflacionArgentinaDatos] Network error:", error);
     return null;
   }
 }
 
 /**
- * Fetches the full monthly inflation history from ArgentinaDatos.
- *
- * Returns all available entries sorted ascending by date. Each entry
- * has `{ fecha, valor }` where valor is the monthly percentage.
+ * Fallback: fetches the full monthly inflation history from ArgentinaDatos.
  *
  * @returns Array of inflation entries, or empty array on failure.
  */
-export async function fetchInflacionHistory(): Promise<InflacionMensual[]> {
+async function fetchInflacionHistoryArgentinaDatos(): Promise<InflacionMensual[]> {
   try {
     const res = await fetch(
       `${ARGENTINADATOS_BASE}/v1/finanzas/indices/inflacion`,
@@ -208,7 +199,7 @@ export async function fetchInflacionHistory(): Promise<InflacionMensual[]> {
     );
 
     if (!res.ok) {
-      console.error(`[fetchInflacionHistory] HTTP ${res.status}`);
+      console.error(`[fetchInflacionHistoryArgentinaDatos] HTTP ${res.status}`);
       return [];
     }
 
@@ -218,9 +209,41 @@ export async function fetchInflacionHistory(): Promise<InflacionMensual[]> {
 
     return data;
   } catch (error) {
-    console.error("[fetchInflacionHistory] Network error:", error);
+    console.error("[fetchInflacionHistoryArgentinaDatos] Network error:", error);
     return [];
   }
+}
+
+/**
+ * Fetches the latest monthly inflation (IPC) entry.
+ *
+ * Primary source: official INDEC API (`ipc_nacional`), which also exposes
+ * interannual and accumulated variations. Falls back to ArgentinaDatos when
+ * INDEC fails or `INDEC_API_TOKEN` is missing.
+ *
+ * INDEC publishes with approximately a 6-week lag, so the latest entry being
+ * 1-2 months behind the current date is expected behavior.
+ *
+ * @returns The latest monthly inflation entry, or `null` on failure.
+ */
+export async function fetchInflacion(): Promise<InflacionMensual | null> {
+  const indec = await fetchIpcNacional();
+  if (indec) return indec;
+  return fetchInflacionArgentinaDatos();
+}
+
+/**
+ * Fetches the full monthly inflation history.
+ *
+ * Primary source: official INDEC API. Falls back to ArgentinaDatos when INDEC
+ * fails or `INDEC_API_TOKEN` is missing.
+ *
+ * @returns Array of inflation entries sorted ascending by date, or `[]`.
+ */
+export async function fetchInflacionHistory(): Promise<InflacionMensual[]> {
+  const indec = await fetchIpcNacionalHistory();
+  if (indec.length > 0) return indec;
+  return fetchInflacionHistoryArgentinaDatos();
 }
 
 // ---------------------------------------------------------------------------

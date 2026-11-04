@@ -36,9 +36,21 @@ export default function Footer() {
             <a href="https://dolarapi.com" target="_blank" rel="noopener noreferrer" className="footer-link">
               DolarAPI
             </a>
-            {" "}y{" "}
-            <a href="https://argentinadatos.com" target="_blank" rel="noopener noreferrer" className="footer-link">
-              ArgentinaDatos
+            {", "}
+            <a href="https://api.indec.gob.ar" target="_blank" rel="noopener noreferrer" className="footer-link">
+              INDEC
+            </a>
+            {", "}
+            <a href="https://comparapix.ar" target="_blank" rel="noopener noreferrer" className="footer-link">
+              ComparaPix
+            </a>
+            {", "}
+            <a href="https://criptoya.com" target="_blank" rel="noopener noreferrer" className="footer-link">
+              CriptoYa
+            </a>
+            {" y "}
+            <a href="https://finance.yahoo.com" target="_blank" rel="noopener noreferrer" className="footer-link">
+              Yahoo Finance
             </a>
           </p>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>

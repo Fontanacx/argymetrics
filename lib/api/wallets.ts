@@ -20,6 +20,12 @@ export async function fetchWalletDollars(): Promise<DollarWithHistory[]> {
       { key: "lemoncash", nombre: "Dólar Lemon", casa: "lemoncash" },
       { key: "belo", nombre: "Dólar Belo", casa: "belo" },
       { key: "buenbit", nombre: "Dólar Buenbit", casa: "buenbit" },
+      { key: "ripio", nombre: "Dólar Ripio", casa: "ripio" },
+      { key: "fiwind", nombre: "Dólar Fiwind", casa: "fiwind" },
+      { key: "satoshitango", nombre: "Dólar SatoshiTango", casa: "satoshitango" },
+      { key: "decrypto", nombre: "Dólar Decrypto", casa: "decrypto" },
+      { key: "takenos", nombre: "Dólar Takenos", casa: "takenos" },
+      { key: "wallbit", nombre: "Dólar Wallbit", casa: "wallbit" },
     ];
 
     const results: DollarWithHistory[] = [];

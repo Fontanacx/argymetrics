@@ -16,7 +16,7 @@ interface VariationBadgeProps {
 export default function VariationBadge({ value, brandColor, inverseSemantic = false }: VariationBadgeProps) {
   if (value === null) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
+      <span className="metric-badge inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
         style={{ background: "var(--color-neutral-bg)", color: "var(--color-neutral)" }}>
         <Minus size={12} />
         <span>--</span>
@@ -62,7 +62,7 @@ export default function VariationBadge({ value, brandColor, inverseSemantic = fa
 
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
+      className="metric-badge inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
       style={{ background: bgColor, color: textColor }}
     >
       <Icon size={12} />

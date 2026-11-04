@@ -2,7 +2,11 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { ArrowDownUp, ChevronDown } from "lucide-react";
-import type { DollarWithHistory, LatamCurrencyRate } from "@/lib/types";
+import type {
+  BrlWalletRate,
+  DollarWithHistory,
+  LatamCurrencyRate,
+} from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
 import { CASA_LABELS, LATAM_FLAGS, LATAM_LABELS, LATAM_SYMBOLS } from "@/lib/constants";
 
@@ -13,6 +17,7 @@ import { CASA_LABELS, LATAM_FLAGS, LATAM_LABELS, LATAM_SYMBOLS } from "@/lib/con
 interface CurrencyConverterProps {
   dollars: DollarWithHistory[];
   latamCurrencies: LatamCurrencyRate[];
+  brlWallets: BrlWalletRate[];
 }
 
 interface SelectOption {
@@ -153,7 +158,11 @@ function getCurrencyLabel(code: string): string {
 // Main Component
 // ---------------------------------------------------------------------------
 
-export default function CurrencyConverter({ dollars, latamCurrencies }: CurrencyConverterProps) {
+export default function CurrencyConverter({
+  dollars,
+  latamCurrencies,
+  brlWallets,
+}: CurrencyConverterProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("blue");
   const [amount, setAmount] = useState<string>("");
   const [mode, setMode] = useState<"venta" | "compra">("venta");
@@ -162,36 +171,83 @@ export default function CurrencyConverter({ dollars, latamCurrencies }: Currency
   // ---------------------------------------------------------------------------
   // Rate resolution: check dollars first, then latamCurrencies
   // ---------------------------------------------------------------------------
-  const selectedDollarObj = dollars.find((d) => d.rate.casa === selectedCurrency);
+  const selectedDollarObj = dollars.find(
+    (d) => d.rate.casa === selectedCurrency
+  );
   const selectedLatamObj = !selectedDollarObj
     ? latamCurrencies.find((l) => l.moneda === selectedCurrency)
     : undefined;
+  const selectedBrlWallet = !selectedDollarObj && !selectedLatamObj
+    ? brlWallets.find((wallet) => `real-${wallet.id}` === selectedCurrency)
+    : undefined;
 
-  const rateVenta = selectedDollarObj?.rate.venta ?? selectedLatamObj?.venta ?? 1;
-  const rateCompra = selectedDollarObj?.rate.compra ?? selectedLatamObj?.compra ?? 1;
+  const rateVenta =
+    selectedDollarObj?.rate.venta ??
+    selectedLatamObj?.venta ??
+    selectedBrlWallet?.venta ??
+    1;
+  const rateCompra =
+    selectedDollarObj?.rate.compra ??
+    selectedLatamObj?.compra ??
+    selectedBrlWallet?.compra ??
+    rateVenta;
   const activeRate = mode === "venta" ? rateVenta : rateCompra;
 
   const fechaActualizacion =
-    selectedDollarObj?.rate.fechaActualizacion ?? selectedLatamObj?.fechaActualizacion ?? null;
+    selectedDollarObj?.rate.fechaActualizacion ??
+    selectedLatamObj?.fechaActualizacion ??
+    selectedBrlWallet?.fechaActualizacion ??
+    null;
 
   // ---------------------------------------------------------------------------
   // Build dropdown options: existing dollars + LATAM section divider + LATAM rates
   // ---------------------------------------------------------------------------
   const selectOptions = useMemo<SelectOption[]>(() => {
-    const dollarOptions: SelectOption[] = dollars.map((d) => ({
-      value: d.rate.casa,
-      label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
-      flag: getFlag(d.rate.casa),
-    }));
+    const groups: SelectOption[] = [];
 
-    if (latamCurrencies.length === 0) return dollarOptions;
-
-    const divider: SelectOption = {
-      value: "__latam_divider__",
-      label: "Monedas LATAM",
-      flag: "",
-      divider: true,
+    const addGroup = (label: string, options: SelectOption[]) => {
+      if (options.length === 0) return;
+      groups.push({
+        value: `__divider_${label}`,
+        label,
+        flag: "",
+        divider: true,
+      });
+      groups.push(...options);
     };
+
+    const usdOptions: SelectOption[] = dollars
+      .filter(
+        (d) =>
+          !d.rate.casa.includes("euro") && !d.rate.casa.includes("real")
+      )
+      .map((d) => ({
+        value: d.rate.casa,
+        label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
+        flag: getFlag(d.rate.casa),
+      }));
+
+    const euroOptions: SelectOption[] = dollars
+      .filter((d) => d.rate.casa.includes("euro"))
+      .map((d) => ({
+        value: d.rate.casa,
+        label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
+        flag: getFlag(d.rate.casa),
+      }));
+
+    const realOptions: SelectOption[] = dollars
+      .filter((d) => d.rate.casa.includes("real"))
+      .map((d) => ({
+        value: d.rate.casa,
+        label: CASA_LABELS[d.rate.casa] || d.rate.nombre,
+        flag: getFlag(d.rate.casa),
+      }));
+
+    const brlWalletOptions: SelectOption[] = brlWallets.map((wallet) => ({
+      value: `real-${wallet.id}`,
+      label: `Real ${wallet.nombre}`,
+      flag: "🇧🇷",
+    }));
 
     const latamOptions: SelectOption[] = latamCurrencies.map((l) => ({
       value: l.moneda,
@@ -199,8 +255,13 @@ export default function CurrencyConverter({ dollars, latamCurrencies }: Currency
       flag: LATAM_FLAGS[l.moneda] || "",
     }));
 
-    return [...dollarOptions, divider, ...latamOptions];
-  }, [dollars, latamCurrencies]);
+    addGroup("Dólares", usdOptions);
+    addGroup("Euros", euroOptions);
+    addGroup("Reales", [...realOptions, ...brlWalletOptions]);
+    addGroup("Otras monedas", latamOptions);
+
+    return groups;
+  }, [dollars, latamCurrencies, brlWallets]);
 
   // ---------------------------------------------------------------------------
   // Input handling
@@ -387,6 +448,21 @@ export default function CurrencyConverter({ dollars, latamCurrencies }: Currency
             <div className="mt-1 text-right text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
               precio: {formatARS(activeRate)}
             </div>
+            {selectedBrlWallet &&
+              (selectedBrlWallet.compra === null ||
+                selectedBrlWallet.hasFees) && (
+                <div
+                  className="mt-1 text-right text-[11px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {selectedBrlWallet.compra === null
+                    ? "Sin cotización de compra publicada."
+                    : ""}
+                  {selectedBrlWallet.hasFees
+                    ? " Puede incluir comisiones."
+                    : ""}
+                </div>
+              )}
           </div>
         </div>
 

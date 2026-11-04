@@ -35,6 +35,8 @@ Primary data sources:
 
 * https://dolarapi.com
 * https://api.argentinadatos.com
+* https://api.indec.gob.ar (official IPC, wages, EMAE, baskets and poverty; requires a server-side JWT in `INDEC_API_TOKEN`)
+* https://api.comparapix.ar (public PIX/BRL quotes from Mercado Pago and virtual wallets)
 
 ---
 
@@ -87,6 +89,8 @@ lib/
     dollars.ts
     historical.ts
     indicators.ts
+    indec.ts
+    brl-wallets.ts
     crypto.ts
     commodities.ts
     stocks.ts
@@ -149,6 +153,10 @@ lib/api/
 Never fetch external APIs directly inside components.
 
 Components must call typed API functions.
+
+INDEC requires a server-side JWT in `INDEC_API_TOKEN`. Never expose it with
+`NEXT_PUBLIC_*`, never hardcode it, and always keep the ArgentinaDatos fallback
+for IPC if the token is missing or the BETA API fails.
 
 Example:
 

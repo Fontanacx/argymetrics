@@ -11,7 +11,7 @@ interface SparklineProps {
   data: { fecha: string; valor: number }[];
   positive: boolean;
   label: string;
-  formatType: "riesgo" | "inflacion" | "commodity";
+  formatType: "riesgo" | "inflacion" | "commodity" | "dollar";
   dataKey?: string;
 }
 
@@ -33,10 +33,12 @@ interface IndicatorCardProps {
   /** Optional info modal trigger (InfoButton + IndicatorDetail) */
   infoModal?: {
     title: string;
-    kind: "riesgo" | "inflacion" | "commodity";
-    data: { fecha: string; valor: number }[] | { fecha: string; valor: number; fecha_hasta?: string }[];
+    kind: "riesgo" | "inflacion" | "commodity" | "macro";
+    data: { fecha: string; valor: number }[];
     definition: string;
     updateTime?: string;
+    /** Format for macro series: percentages or ARS amounts. */
+    format?: "percent" | "ars";
   };
   /** Optional content rendered below the value (e.g. commodity change badge) */
   children?: ReactNode;
@@ -67,7 +69,7 @@ export default function IndicatorCard({
 }: IndicatorCardProps) {
   return (
     <div
-      className="flex items-center gap-4 rounded-xl border p-4"
+      className="metric-card flex items-center gap-4 rounded-xl border p-4"
       style={{
         background: "var(--bg-card)",
         borderColor: "var(--border-primary)",
@@ -75,7 +77,7 @@ export default function IndicatorCard({
       }}
     >
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+        className="metric-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
         style={{ background: iconBg, color: iconColor }}
       >
         {icon}
@@ -89,14 +91,25 @@ export default function IndicatorCard({
           </p>
           {infoModal && (
             <InfoButton title={infoModal.title}>
-              <IndicatorDetail
-                kind={infoModal.kind}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                data={infoModal.data as any}
-                label={infoModal.title}
-                definition={infoModal.definition}
-                updateTime={infoModal.updateTime}
-              />
+              {infoModal.kind === "macro" ? (
+                <IndicatorDetail
+                  kind="macro"
+                  data={infoModal.data}
+                  label={infoModal.title}
+                  definition={infoModal.definition}
+                  updateTime={infoModal.updateTime}
+                  format={infoModal.format ?? "percent"}
+                />
+              ) : (
+                <IndicatorDetail
+                  kind={infoModal.kind}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  data={infoModal.data as any}
+                  label={infoModal.title}
+                  definition={infoModal.definition}
+                  updateTime={infoModal.updateTime}
+                />
+              )}
             </InfoButton>
           )}
         </div>
@@ -105,28 +118,33 @@ export default function IndicatorCard({
         {value ? (
           <>
             <p
-              className="text-xl font-bold tabular-nums"
+              className="metric-card-value text-xl font-bold tabular-nums"
               style={{ color: "var(--text-primary)" }}
             >
               {value}
             </p>
 
             {dateLabel && (
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <p
+                className="metric-card-subtitle text-xs"
+                style={{ color: "var(--text-muted)" }}
+              >
                 {dateLabel}
               </p>
             )}
 
-            {children}
+            {children && <div className="metric-card-extra">{children}</div>}
 
             {sparkline && sparkline.data.length > 0 && (
-              <SparklineChart
-                data={sparkline.data.slice(-7)}
-                dataKey={sparkline.dataKey ?? "valor"}
-                positive={sparkline.positive}
-                label={sparkline.label}
-                formatType={sparkline.formatType}
-              />
+              <div className="metric-card-sparkline">
+                <SparklineChart
+                  data={sparkline.data.slice(-7)}
+                  dataKey={sparkline.dataKey ?? "valor"}
+                  positive={sparkline.positive}
+                  label={sparkline.label}
+                  formatType={sparkline.formatType}
+                />
+              </div>
             )}
           </>
         ) : (

@@ -22,7 +22,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {/* Bitcoin */}
       <div
-        className="flex items-center gap-4 rounded-xl border p-4"
+        className="metric-card flex items-center gap-4 rounded-xl border p-4"
         style={{
           background: "var(--bg-card)",
           borderColor: "var(--border-primary)",
@@ -30,7 +30,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
         }}
       >
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+          className="metric-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
           style={{ background: "rgba(247, 147, 26, 0.1)", color: "#F7931A" }}
         >
           {/* Using a generic Coins icon for crypto */}
@@ -56,7 +56,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
           {cryptos?.btc ? (
             <>
               <p
-                className="text-xl font-bold tabular-nums"
+                className="metric-card-value text-xl font-bold tabular-nums"
                 style={{ color: "var(--text-primary)" }}
               >
                 US$ {cryptos.btc.valor.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -83,13 +83,15 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
                 </span>
               </div>
               {btcHistory && btcHistory.length > 0 && (
-                <SparklineChart 
-                  data={btcHistory.slice(-7)} 
-                  dataKey="valor" 
-                  positive={isBtcTrendPositive} 
-                  label="Bitcoin"
-                  formatType="crypto"
-                />
+                <div className="metric-card-sparkline">
+                  <SparklineChart 
+                    data={btcHistory.slice(-7)} 
+                    dataKey="valor" 
+                    positive={isBtcTrendPositive} 
+                    label="Bitcoin"
+                    formatType="crypto"
+                  />
+                </div>
               )}
             </>
           ) : (
@@ -102,7 +104,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
 
       {/* Ethereum */}
       <div
-        className="flex items-center gap-4 rounded-xl border p-4"
+        className="metric-card flex items-center gap-4 rounded-xl border p-4"
         style={{
           background: "var(--bg-card)",
           borderColor: "var(--border-primary)",
@@ -110,7 +112,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
         }}
       >
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+          className="metric-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
           style={{ background: "rgba(98, 126, 234, 0.1)", color: "#627EEA" }}
         >
           {/* Using a generic Coins icon with ETH color */}
@@ -136,7 +138,7 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
           {cryptos?.eth ? (
             <>
               <p
-                className="text-xl font-bold tabular-nums"
+                className="metric-card-value text-xl font-bold tabular-nums"
                 style={{ color: "var(--text-primary)" }}
               >
                 US$ {cryptos.eth.valor.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -163,13 +165,15 @@ export default function CryptoStrip({ cryptos, btcHistory, ethHistory }: CryptoS
                 </span>
               </div>
               {ethHistory && ethHistory.length > 0 && (
-                <SparklineChart 
-                  data={ethHistory.slice(-7)} 
-                  dataKey="valor" 
-                  positive={isEthTrendPositive} 
-                  label="Ethereum"
-                  formatType="crypto"
-                />
+                <div className="metric-card-sparkline">
+                  <SparklineChart 
+                    data={ethHistory.slice(-7)} 
+                    dataKey="valor" 
+                    positive={isEthTrendPositive} 
+                    label="Ethereum"
+                    formatType="crypto"
+                  />
+                </div>
               )}
             </>
           ) : (

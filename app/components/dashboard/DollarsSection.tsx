@@ -23,7 +23,19 @@ const FULL_HISTORY_CASAS = [
   "realtarjeta",
 ] as const;
 
-const WALLET_HISTORY_KEYS = ["astropay", "cocos", "lemoncash", "belo", "buenbit"] as const;
+const WALLET_HISTORY_KEYS = [
+  "astropay",
+  "cocos",
+  "lemoncash",
+  "belo",
+  "buenbit",
+  "ripio",
+  "fiwind",
+  "satoshitango",
+  "decrypto",
+  "takenos",
+  "wallbit",
+] as const;
 
 export function DollarsSectionSkeleton() {
   return (
