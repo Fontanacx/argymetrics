@@ -79,12 +79,12 @@ const DATA_SOURCES = [
   {
     name: "DolarAPI",
     url: "https://dolarapi.com",
-    description: "Cotizaciones oficiales USD/EUR/BRL y variantes del dólar (blue, MEP, CCL, tarjeta).",
+    description: "Cotizaciones oficiales USD/EUR/BRL, variantes del dólar (blue, MEP, CCL, tarjeta) y tipos de cambio regionales de LATAM.",
   },
   {
-    name: "ArgentinaDatos",
-    url: "https://api.argentinadatos.com",
-    description: "Series históricas del dólar y del Riesgo País; fallback del IPC cuando la API del INDEC no está disponible.",
+    name: "BCRA",
+    url: "https://api.bcra.gob.ar",
+    description: "Reservas Internacionales y parámetros de referencia de las bandas cambiarias.",
   },
   {
     name: "INDEC",
@@ -92,14 +92,14 @@ const DATA_SOURCES = [
     description: "IPC oficial, salario real, actividad económica (EMAE), canastas básicas, pobreza e inflación por región.",
   },
   {
-    name: "ComparaPix",
-    url: "https://comparapix.ar",
-    description: "Cotizaciones PIX de Real brasileño en Mercado Pago y billeteras virtuales.",
+    name: "ArgentinaDatos",
+    url: "https://api.argentinadatos.com",
+    description: "Series históricas del dólar y del Riesgo País; fallback del IPC cuando la API del INDEC no está disponible.",
   },
   {
-    name: "Yahoo Finance",
-    url: "https://query1.finance.yahoo.com",
-    description: "Commodities (Oro, Brent, Gas Natural), acciones BYMA e índices bursátiles.",
+    name: "ComparaPix",
+    url: "https://comparapix.ar",
+    description: "Cotizaciones PIX de Real brasileño en Mercado Pago, billeteras y fintechs.",
   },
   {
     name: "CriptoYa",
@@ -107,9 +107,19 @@ const DATA_SOURCES = [
     description: "Precios de criptomonedas (BTC, ETH) y cotizaciones de dólar en billeteras virtuales.",
   },
   {
+    name: "Yahoo Finance",
+    url: "https://query1.finance.yahoo.com",
+    description: "Commodities (Oro, Brent, Gas Natural), acciones BYMA e índices bursátiles.",
+  },
+  {
     name: "Ámbito Financiero",
     url: "https://mercados.ambito.com",
     description: "Riesgo País y variantes del tipo de cambio del Real Brasileño.",
+  },
+  {
+    name: "ExchangeRate-API",
+    url: "https://open.er-api.com",
+    description: "Tipos de cambio de referencia para conversiones cruzadas de UYU, PYG y otras monedas LATAM.",
   },
 ] as const;
 
@@ -202,7 +212,7 @@ export default function LegalPage() {
                 >
                   localStorage
                 </code>{" "}
-                para guardar la preferencia de tema (clave:{" "}
+                para guardar preferencias de interfaz: tema (
                 <code
                   className="rounded px-1 py-0.5 text-xs font-mono"
                   style={{
@@ -212,7 +222,27 @@ export default function LegalPage() {
                 >
                   argymetrics-theme
                 </code>
-                ). Esta clave no contiene información personal de ningún tipo.
+                ), diseño de tarjetas (
+                <code
+                  className="rounded px-1 py-0.5 text-xs font-mono"
+                  style={{
+                    background: "var(--color-accent-light)",
+                    color: "var(--color-accent)",
+                  }}
+                >
+                  argymetrics-card-layout
+                </code>
+                ) y forma de tarjetas (
+                <code
+                  className="rounded px-1 py-0.5 text-xs font-mono"
+                  style={{
+                    background: "var(--color-accent-light)",
+                    color: "var(--color-accent)",
+                  }}
+                >
+                  argymetrics-card-shape
+                </code>
+                ). Ninguna de estas claves contiene información personal.
               </p>
               <p>
                 No se integran <em>trackers</em> de terceros, píxeles publicitarios ni scripts
@@ -305,6 +335,16 @@ export default function LegalPage() {
                   recargo del impuesto PAIS/tarjeta).
                 </li>
               </ul>
+              <p>
+                Los tipos de cambio de <strong>otras monedas LATAM</strong> se calculan por
+                conversión cruzada con el dólar CCL y cotizaciones regionales; son valores
+                referenciales y pueden incluir spreads de mercado.
+              </p>
+              <p>
+                Las cotizaciones de <strong>Real en billeteras</strong> provienen de ComparaPix y
+                pueden incluir comisiones o recargos propios de cada proveedor. Cambian cada pocos
+                minutos.
+              </p>
               <p>
                 Los valores de la <strong>Banda de Flotación del BCRA (Crawling Band)</strong> se
                 actualizan manualmente y pueden no reflejar cambios oficiales en tiempo real.
