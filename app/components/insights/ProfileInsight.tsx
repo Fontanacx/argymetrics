@@ -169,12 +169,6 @@ function ConclusionBox({ message, icon, color, sentiment }: { message: string, i
     neutral: "var(--color-accent)",
   };
 
-  const bgColors = {
-    positive: "var(--color-positive-bg)",
-    negative: "var(--color-negative-bg)",
-    neutral: "var(--color-accent-light)",
-  };
-
   return (
     <div
       className="relative flex items-start gap-3 rounded-xl border p-4 overflow-hidden"

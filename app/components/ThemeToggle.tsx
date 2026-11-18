@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
 
 type Theme = "light" | "dark" | "system";
@@ -10,6 +10,46 @@ const STORAGE_KEY = "argymetrics-theme";
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function isTheme(value: string | null): value is Theme {
+  return value === "light" || value === "dark" || value === "system";
+}
+
+// External store backed by localStorage so the theme can be read without
+// setting state inside an effect (and without hydration mismatches: the
+// server snapshot is always "system").
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getSnapshot(): Theme {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return isTheme(stored) ? stored : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function getServerSnapshot(): Theme {
+  return "system";
+}
+
+function storeTheme(theme: Theme) {
+  try {
+    localStorage.setItem(STORAGE_KEY, theme);
+  } catch {
+    // Storage unavailable: the theme still applies for this session.
+  }
+  listeners.forEach((listener) => listener());
 }
 
 function applyTheme(theme: Theme) {
@@ -22,16 +62,12 @@ function applyTheme(theme: Theme) {
  * Persists preference to localStorage and applies the `.dark` class on <html>.
  */
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  // Read stored preference on mount
+  // Apply stored preference on mount (the inline layout script handles first paint)
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored) {
-      setTheme(stored);
-      applyTheme(stored);
-    }
-  }, []);
+    if (theme !== "system") applyTheme(theme);
+  }, [theme]);
 
   // Listen for system changes when in "system" mode
   useEffect(() => {
@@ -45,8 +81,7 @@ export default function ThemeToggle() {
   const cycle = useCallback(() => {
     const order: Theme[] = ["light", "dark", "system"];
     const next = order[(order.indexOf(theme) + 1) % order.length];
-    setTheme(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    storeTheme(next);
     applyTheme(next);
   }, [theme]);
 

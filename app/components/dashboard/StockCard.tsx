@@ -41,12 +41,14 @@ export default function StockCard({ stock, currency = "ARS" }: StockCardProps) {
         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
           <div className="flex items-center flex-wrap gap-1 min-w-0 pr-1">
             {logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- third-party logo hosts are not in next.config remotePatterns; tiny 36px icon, next/image optimization adds no value
               <img
                 src={logoUrl}
                 alt=""
                 width={36}
                 height={36}
                 loading="lazy"
+                decoding="async"
                 className="metric-card-avatar shrink-0 rounded-md"
                 style={{ width: 36, height: 36 }}
               />

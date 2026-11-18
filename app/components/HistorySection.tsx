@@ -18,7 +18,7 @@ import type {
   HistoryRange,
   HistoryMetrics,
 } from "@/lib/types";
-import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
+import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { RANGE_DAYS, computeMetrics } from "@/lib/formatters/metrics";
 import { formatARS, formatPercent, formatPoints } from "@/lib/formatters/currency";
 import { formatShortDate } from "@/lib/formatters/date";

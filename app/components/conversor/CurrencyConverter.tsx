@@ -275,11 +275,14 @@ export default function CurrencyConverter({
   // ---------------------------------------------------------------------------
   // Conversion
   // ---------------------------------------------------------------------------
-  const convertedAmount = useMemo(() => {
-    const numAmount = parseFloat(amount || "0");
-    if (isNaN(numAmount) || numAmount === 0 || activeRate === 0) return 0;
-    return isPesosTop ? numAmount / activeRate : numAmount * activeRate;
-  }, [amount, isPesosTop, activeRate]);
+  // Cheap derived value: computed inline (React Compiler memoizes as needed).
+  const numAmount = parseFloat(amount || "0");
+  const convertedAmount =
+    isNaN(numAmount) || numAmount === 0 || activeRate === 0
+      ? 0
+      : isPesosTop
+        ? numAmount / activeRate
+        : numAmount * activeRate;
 
   // ---------------------------------------------------------------------------
   // Timestamp

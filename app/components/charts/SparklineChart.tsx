@@ -9,7 +9,7 @@ import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 interface SparklineChartProps {
   /** Historical data points. */
-  data: any[];
+  data: ReadonlyArray<unknown>;
   /** Whether the overall trend is positive. Controls line color. */
   positive: boolean;
   /** Optional title for the modal */

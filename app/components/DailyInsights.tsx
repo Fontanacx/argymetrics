@@ -101,17 +101,24 @@ export default function DailyInsights({
   const walletCards = useMemo(() => computeWalletInsights(walletDollars), [walletDollars]);
   const stockCards = useMemo(() => computeStockInsights(stocks), [stocks]);
 
-  // Active category data
-  const categoryMap: Record<InsightCategory, InsightCard[]> = {
-    dollars: dollarCards,
-    crypto: cryptoCards,
-    indicators: indicatorCards,
-    wallets: walletCards,
-    stocks: stockCards,
-  };
+  // Active category data (memoized so downstream memos get a stable reference)
+  const activeCards = useMemo<InsightCard[]>(() => {
+    switch (activeTab) {
+      case "dollars":
+        return dollarCards;
+      case "crypto":
+        return cryptoCards;
+      case "indicators":
+        return indicatorCards;
+      case "wallets":
+        return walletCards;
+      case "stocks":
+        return stockCards;
+      default:
+        return [];
+    }
+  }, [activeTab, dollarCards, cryptoCards, indicatorCards, walletCards, stockCards]);
 
-  const activeCards = activeTab === "resumen" ? [] : categoryMap[activeTab];
-  
   const insightOfTheDay = useMemo(
     () => computeInsightOfTheDay(activeCards),
     [activeCards]

@@ -15,8 +15,16 @@ interface ModalProps {
 /**
  * Reusable modal with backdrop, close button, and keyboard escape support.
  * Uses a portal-less approach (renders in-place) for simplicity.
+ *
+ * The panel is only mounted while open, so its internal state (maximized)
+ * resets naturally every time the modal is closed.
  */
-export default function Modal({ open, onClose, title, children, size = "md", allowFullscreen = false }: ModalProps) {
+export default function Modal(props: ModalProps) {
+  if (!props.open) return null;
+  return <ModalPanel {...props} />;
+}
+
+function ModalPanel({ onClose, title, children, size = "md", allowFullscreen = false }: ModalProps) {
   const [isMaximized, setIsMaximized] = useState(false);
 
   // Close on Escape key
@@ -28,19 +36,13 @@ export default function Modal({ open, onClose, title, children, size = "md", all
   );
 
   useEffect(() => {
-    if (!open) {
-      setIsMaximized(false);
-      return;
-    }
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [open, handleKeyDown]);
-
-  if (!open) return null;
+  }, [handleKeyDown]);
 
   const currentSize = isMaximized ? "fullscreen" : size;
 
