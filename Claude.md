@@ -96,12 +96,15 @@ lib/
     stocks.ts
     indices.ts
     latam.ts
+    international-stocks.ts
     wallets.ts
+    guards.ts       ← Runtime type guards for external API payloads
     yahoo.ts        ← Shared Yahoo Finance helper (fetchYahooChart, parseYahooHistory)
 
   formatters/
     currency.ts
     date.ts
+    metrics.ts
 
   constants/
     api.ts          ← API base URLs and revalidation intervals
@@ -109,9 +112,11 @@ lib/
     bandas.ts       ← BANDAS static constants (manual update required)
 
   utils/
-    insights.ts
+    insights.ts     ← Public API; implementation split in insights/ (dollars, crypto, indicators, wallets, stocks, narrative)
     semaforo.ts
     briefing-generator.ts
+    bandas.ts       ← computeBandasAt() projection from the BANDAS anchor
+    rates.ts        ← getLatestUpdateTimestamp()
 
 app/
   components/
@@ -120,17 +125,22 @@ app/
     charts/         ← Client chart wrappers (SparklineChart)
     modals/         ← Modal, InfoButton (client)
     ui/             ← Skeletons and generic UI primitives
+    conversor/      ← CurrencyConverter (client)
     insights/       ← InsightsDashboard panel (client)
     DailyInsights.tsx
     CryptoStrip.tsx
     HistorySection.tsx
   insights/         ← /insights page route
+  comparador/       ← /comparador page route (historical comparison)
   conversor/        ← /conversor page route
   legal/            ← /legal page route
   page.tsx          ← Main dashboard (Server Component)
   loading.tsx       ← Next.js loading UI
   error.tsx         ← Root error boundary
   layout.tsx        ← Root layout + Metadata
+
+__tests__/          ← node:test unit tests (pure logic only, no network)
+  support/          ← ESM loader hook (@/ alias, extensionless imports) + fixtures
 ```
 
 Rules:
@@ -340,6 +350,17 @@ pnpm exec tsc --noEmit
 ```
 
 No TypeScript errors are allowed in commits.
+
+Available scripts (all must pass before committing; CI runs them too):
+
+```
+pnpm typecheck   # tsc --noEmit
+pnpm lint        # eslint .
+pnpm test        # node:test via native type stripping (Node 22.18+), no extra dependencies
+```
+
+New pure logic in `lib/utils` and `lib/formatters` must come with tests in `__tests__/`.
+Tests must never hit live APIs.
 
 ---
 

@@ -22,17 +22,20 @@
 
 | Categoria | Fuente | Revalidacion |
 |---|---|---|
-| Divisas (Blue, Oficial, MEP, CCL, Cripto, Tarjeta, Euro, Real) | DolarAPI | 0s (always fresh) |
-| Inflacion oficial (IPC), salario real, EMAE, canastas, IPC regional y pobreza | INDEC API | 6 h / 24 h |
+| Divisas (Blue, Oficial, MEP, CCL, Cripto, Tarjeta, Euro, Real) | DolarAPI | 1 min |
+| Inflacion oficial (IPC), salario real, EMAE, canastas, IPC regional y pobreza | INDEC API | 6 h (mensuales) / 24 h (semestrales) |
+| Inflacion (fallback si falta el token o falla INDEC) | ArgentinaDatos | 1 h |
 | Real en billeteras (Mercado Pago, Belo, Lemon, AstroPay, etc.) | ComparaPix | 2 min |
-| Riesgo Pais, Reservas BCRA | Ambito / BCRA | 2 min |
-| Criptomonedas (BTC, ETH) | Yahoo Finance | 1 min |
-| Commodities (Oro, Brent, Gas Natural) | Yahoo Finance | 5 min |
+| Riesgo Pais | Ambito / ArgentinaDatos | 2 min |
+| Reservas BCRA | BCRA | 1 h |
+| Criptomonedas (BTC, ETH) | Yahoo Finance | 1 min (cotizacion) / 1 h (historial) |
+| Commodities (Oro, Brent, Gas Natural) | Yahoo Finance | 5 min (cotizacion) / 1 h (historial) |
 | Acciones Argentinas (11 empresas BYMA) | Yahoo Finance | 5 min |
 | Acciones Internacionales (7 empresas NASDAQ/KRX) | Yahoo Finance | 5 min |
 | Indices (Merval, S&P 500, Nasdaq, Dow Jones) | Yahoo Finance | 5 min |
 | Billeteras Virtuales (AstroPay, Lemon, Belo, Ripio, Fiwind, etc.) | CriptoYa | 1 min |
 | Monedas LATAM (MXN, COP, UYU, PEN, CLP, PYG) | DolarAPI / ER-API | 1 min |
+| Series historicas (comparador, dolar, riesgo pais, inflacion) | ArgentinaDatos | 1 h |
 
 ## Experiencia del producto
 
@@ -123,7 +126,7 @@ lib/
   api/                    modulos de fetching (dollars, stocks, crypto, indec, etc.)
   constants/              Configuracion, tickers, labels, revalidacion
   formatters/             currency.ts, date.ts, metrics.ts
-  utils/                  insights.ts, semaforo.ts, briefing-generator.ts
+  utils/                  insights.ts (+ insights/), semaforo.ts, briefing-generator.ts, bandas.ts, rates.ts
 app/
   components/dashboard/   Server Components (DollarCard, StockCard, IndexCard, etc.)
   components/HistoricalComparison.tsx  Comparador histórico interactivo
@@ -145,6 +148,8 @@ MIT. Los datos provistos son de caracter informativo y no constituyen asesoramie
 ## Validación
 
 ```bash
-pnpm exec tsc --noEmit
+pnpm typecheck   # tsc --noEmit
+pnpm lint
+pnpm test        # node:test, sin dependencias extra (requiere Node 22.18+)
 pnpm build
 ```
