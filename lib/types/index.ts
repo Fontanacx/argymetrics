@@ -37,6 +37,20 @@ export type DollarCasa =
   | "realblue"
   | "realtarjeta";
 
+/** DolarAPI quote without the `casa` discriminator (e.g. /v1/cotizaciones/eur). */
+export type DollarQuote = Omit<DollarRate, "casa">;
+
+/**
+ * Factors derived from live DolarAPI quotes and used to synthesise the
+ * Euro / Real "tarjeta" and Euro Blue variants.
+ */
+export interface FxFactors {
+  /** Tarjeta / oficial ratio (percepciones sobre el dólar oficial). */
+  tarjetaMultiplier: number;
+  /** EUR/USD cross implied by DolarAPI (euro oficial / dólar oficial), or null if unavailable. */
+  eurUsd: { compra: number; venta: number } | null;
+}
+
 // ---------------------------------------------------------------------------
 // ArgentinaDatos historical response (GET /v1/cotizaciones/dolares/{casa})
 // ---------------------------------------------------------------------------
@@ -170,18 +184,28 @@ export interface PobrezaHistoryEntry {
   valor: number;
 }
 
+/** Origin of the band values: official BCRA series or local fallback projection. */
+export type BandaFuente = "bcra" | "proyeccion";
+
 export interface BandaCambiaria {
   piso: number;
   techo: number;
   fecha: string;
+  fuente: BandaFuente;
 }
 
-/** Historical entry for BCRA crawling-band data (mock/static) */
+/** Point of a daily BCRA statistics series (`/estadisticas/v4.0/monetarias/{id}`). */
+export interface BcraSeriesPoint {
+  fecha: string;
+  valor: number;
+}
+
+/** Historical entry for the BCRA exchange-rate band. */
 export interface BandaHistoryEntry {
   fecha: string;
   piso: number;
   techo: number;
-  /** Optional official dollar rate for chart overlay */
+  /** Wholesale reference rate (Com. A 3500) for the chart overlay, when available. */
   oficial?: number;
 }
 
@@ -346,6 +370,56 @@ export interface LatamCurrencyRate {
   compra: number;             // buy rate (ARS per 1 unit of foreign currency)
   venta: number;              // sell rate (ARS per 1 unit of foreign currency)
   fechaActualizacion: string; // ISO date string
+}
+
+// ---------------------------------------------------------------------------
+// Regional DolarAPI quotes (mx/co/cl.dolarapi.com)
+// ---------------------------------------------------------------------------
+
+export interface RegionalQuote {
+  moneda: string;
+  nombre: string;
+  compra: number;
+  venta: number;
+  fechaActualizacion: string;
+}
+
+// ---------------------------------------------------------------------------
+// Yahoo Finance chart (minimal validated shape)
+// ---------------------------------------------------------------------------
+
+export interface YahooChartMeta {
+  regularMarketPrice?: number;
+  previousClose?: number;
+  chartPreviousClose?: number;
+  regularMarketChangePercent?: number;
+  regularMarketDayHigh?: number;
+  regularMarketDayLow?: number;
+  regularMarketVolume?: number;
+  /** Unix epoch in seconds. */
+  regularMarketTime?: number;
+}
+
+/** First result of a Yahoo chart response, with the columnar arrays normalised. */
+export interface YahooChartResult {
+  meta: YahooChartMeta;
+  /** Unix epoch seconds, one per candle. */
+  timestamp: number[];
+  /** Daily closes aligned with `timestamp` (null on non-trading days). */
+  close: (number | null)[];
+}
+
+// ---------------------------------------------------------------------------
+// CriptoYa exchange quote (GET /api/usdt/ars)
+// ---------------------------------------------------------------------------
+
+export interface CriptoYaQuote {
+  /** Price at which the exchange sells to the user. */
+  ask: number;
+  /** Price at which the exchange buys from the user. */
+  bid: number;
+  /** Unix epoch seconds of the exchange quote, when provided. */
+  time?: number;
 }
 
 // ---------------------------------------------------------------------------

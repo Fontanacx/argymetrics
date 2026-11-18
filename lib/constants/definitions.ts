@@ -50,9 +50,9 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
     "Influye en los costos de energía y logística a nivel mundial, impactando directamente en la inflación y finanzas globales.",
 
   bandas:
-    "Las Bandas Cambiarias son los limites de flotacion del tipo de cambio oficial definidos por el Banco Central (BCRA). " +
-    "El piso (banda inferior) y el techo (banda superior) se amplian un 1% mensual bajo un esquema de crawling peg. " +
-    "Cuando el dolar oficial toca el piso, el BCRA compra divisas; cuando toca el techo, vende. " +
+    "Las Bandas Cambiarias son los límites de flotación del dólar mayorista definidos por el Banco Central (BCRA). " +
+    "Desde enero de 2026, el piso (banda inferior) y el techo (banda superior) se ajustan cada mes según el último dato de inflación mensual del INDEC (con dos meses de rezago), aplicado en forma diaria. " +
+    "Cuando el dólar mayorista toca el piso, el BCRA compra divisas; cuando toca el techo, vende. " +
     "Este mecanismo busca dar previsibilidad al mercado cambiario reduciendo la volatilidad.",
 
   btc:
@@ -113,7 +113,7 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
 
   eurotarjeta:
     "El Euro Tarjeta es el tipo de cambio aplicado a los consumos en euros realizados con tarjetas de crédito o débito argentinas. " +
-    "Incluye los impuestos y retenciones (PAIS, Ganancias) aplicados sobre el Euro Oficial.",
+    "Incluye la percepción de Ganancias aplicada sobre el Euro Oficial (factor derivado de la relación Dólar Tarjeta / Dólar Oficial).",
 
   euroblue:
     "El Euro Blue es la cotización informal del euro en Argentina, intercambiado fuera del mercado bancario regulado. " +
@@ -163,7 +163,7 @@ export const INDICATOR_DEFINITIONS: Record<string, string> = {
 
   realtarjeta:
     "El Real Tarjeta es el tipo de cambio aplicado a consumos en reales realizados con tarjetas argentinas. " +
-    "Incluye los impuestos y retenciones (PAIS, Ganancias) aplicados sobre el Real Oficial, resultando en un recargo del 60%.",
+    "Incluye la percepción de Ganancias aplicada sobre el Real Oficial (factor derivado de la relación Dólar Tarjeta / Dólar Oficial).",
 
   // BYMA Stocks
   "ggal.ba":

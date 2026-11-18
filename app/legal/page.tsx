@@ -327,12 +327,14 @@ export default function LegalPage() {
               </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
-                  <strong>Euro Blue</strong>: se calcula como Dólar Blue × 1,086 (tipo de cambio
-                  cruzado EUR/USD de referencia).
+                  <strong>Euro Blue</strong> y <strong>Real Blue</strong>: se calculan aplicando
+                  al Dólar Blue el tipo de cambio cruzado implícito en las cotizaciones oficiales
+                  (Euro o Real Oficial ÷ Dólar Oficial).
                 </li>
                 <li>
-                  <strong>Euro Tarjeta</strong>: se calcula como Euro Oficial × 1,6 (incluye el
-                  recargo del impuesto PAIS/tarjeta).
+                  <strong>Euro Tarjeta</strong> y <strong>Real Tarjeta</strong>: se calculan
+                  aplicando a la cotización oficial el mismo recargo que surge de Dólar Tarjeta ÷
+                  Dólar Oficial (actualmente la percepción de Ganancias del 30%).
                 </li>
               </ul>
               <p>

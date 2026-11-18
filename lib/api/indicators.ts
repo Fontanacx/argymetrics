@@ -1,14 +1,30 @@
-import type { RiesgoPais, InflacionMensual, BandaCambiaria, BandaHistoryEntry, ReservasBCRA, ReservasHistoryEntry } from "../types";
+import type {
+  RiesgoPais,
+  InflacionMensual,
+  BandaCambiaria,
+  BandaHistoryEntry,
+  BcraSeriesPoint,
+  ReservasBCRA,
+  ReservasHistoryEntry,
+} from "../types";
 import {
   AMBITO_BASE,
   ARGENTINADATOS_BASE,
   BCRA_BASE,
+  BCRA_SERIES,
+  REVALIDATE_BANDAS,
   REVALIDATE_RIESGO_PAIS,
   REVALIDATE_INFLACION,
   REVALIDATE_RESERVAS,
 } from "@/lib/constants";
 import { computeBandasAt, todayBuenosAiresISO } from "@/lib/utils/bandas";
 import { fetchIpcNacional, fetchIpcNacionalHistory } from "./indec";
+import {
+  isFiniteNumber,
+  isRecord,
+  parseInflacionHistory,
+  parseInflacionMensual,
+} from "./guards";
 
 // ---------------------------------------------------------------------------
 // Riesgo Pais
@@ -45,19 +61,12 @@ async function fetchRiesgoPaisAmbito(): Promise<RiesgoPais | null> {
 
     const data: unknown = await res.json();
 
-    if (
-      data === null ||
-      typeof data !== "object" ||
-      !("ultimo" in data) ||
-      !("fecha" in data) ||
-      typeof (data as { ultimo: unknown }).ultimo !== "string" ||
-      typeof (data as { fecha: unknown }).fecha !== "string"
-    ) {
+    if (!isRecord(data) || typeof data.ultimo !== "string" || typeof data.fecha !== "string") {
       console.error("[fetchRiesgoPaisAmbito] Formato inesperado:", data);
       return null;
     }
 
-    const { ultimo, fecha } = data as { ultimo: string; fecha: string };
+    const { ultimo, fecha } = data;
 
     // "408" / "1.234,5" (es-AR) → number. Quita separador de miles y usa punto decimal.
     const valor = Number(ultimo.replace(/\./g, "").replace(",", "."));
@@ -72,10 +81,8 @@ async function fetchRiesgoPaisAmbito(): Promise<RiesgoPais | null> {
 
     // Variación diaria opcional: "-1,69%" → -1.69 (null si falta o es inválida).
     let variacion: number | null = null;
-    if ("variacion" in data && typeof (data as { variacion: unknown }).variacion === "string") {
-      const parsed = Number(
-        (data as { variacion: string }).variacion.replace("%", "").replace(",", ".").trim()
-      );
+    if (typeof data.variacion === "string") {
+      const parsed = Number(data.variacion.replace("%", "").replace(",", ".").trim());
       variacion = Number.isFinite(parsed) ? parsed : null;
     }
 
@@ -109,15 +116,8 @@ async function fetchRiesgoPaisArgentinaDatos(): Promise<RiesgoPais | null> {
 
     const data: unknown = await res.json();
 
-    if (
-      data !== null &&
-      typeof data === "object" &&
-      "valor" in data &&
-      "fecha" in data &&
-      typeof (data as RiesgoPais).valor === "number" &&
-      typeof (data as RiesgoPais).fecha === "string"
-    ) {
-      return data as RiesgoPais;
+    if (isRecord(data) && isFiniteNumber(data.valor) && typeof data.fecha === "string") {
+      return { valor: data.valor, fecha: data.fecha };
     }
 
     console.error("[fetchRiesgoPaisArgentinaDatos] Respuesta con formato inesperado:", data);
@@ -170,16 +170,11 @@ async function fetchInflacionArgentinaDatos(): Promise<InflacionMensual | null> 
       return null;
     }
 
-    const data: InflacionMensual[] = await res.json();
-
+    const data: unknown = await res.json();
     if (!Array.isArray(data) || data.length === 0) return null;
 
-    const latest = data[data.length - 1];
-
-    // Validate expected shape
-    if (typeof latest?.valor !== "number") return null;
-
-    return latest;
+    // Validate the latest entry's shape
+    return parseInflacionMensual(data[data.length - 1]);
   } catch (error) {
     console.error("[fetchInflacionArgentinaDatos] Network error:", error);
     return null;
@@ -203,11 +198,9 @@ async function fetchInflacionHistoryArgentinaDatos(): Promise<InflacionMensual[]
       return [];
     }
 
-    const data: InflacionMensual[] = await res.json();
+    const data: unknown = await res.json();
 
-    if (!Array.isArray(data)) return [];
-
-    return data;
+    return parseInflacionHistory(data);
   } catch (error) {
     console.error("[fetchInflacionHistoryArgentinaDatos] Network error:", error);
     return [];
@@ -247,65 +240,141 @@ export async function fetchInflacionHistory(): Promise<InflacionMensual[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Bandas cambiarias (crawling band proyectado desde el ancla del BCRA)
+// Bandas cambiarias (series oficiales del BCRA, con proyección de respaldo)
 // ---------------------------------------------------------------------------
 
-/**
- * Devuelve el piso y el techo de la banda cambiaria USD/ARS vigentes hoy.
- *
- * El BCRA definió un crawling band determinístico (piso −1% / techo +1% por
- * mes). En vez de devolver el valor estático del ancla —que queda obsoleto a
- * los pocos días— proyectamos el ancla (`BANDAS`) hasta la fecha actual de
- * Buenos Aires con `computeBandasAt()`. Así la banda se mantiene al día sola y
- * solo hay que tocar el ancla cuando el BCRA cambia el esquema.
- *
- * @returns El piso y techo proyectados a hoy, con la fecha (BRT) del cálculo.
- */
-export function getBandas(): BandaCambiaria {
-  const hoy = todayBuenosAiresISO();
-  const { piso, techo } = computeBandasAt(hoy);
-  return { piso, techo, fecha: hoy };
+const BANDAS_HISTORY_DAYS = 180; // 6 meses
+
+/** Resta `days` días a una fecha ISO `YYYY-MM-DD`. */
+function isoDaysAgo(fromISO: string, days: number): string {
+  const ms = Date.parse(`${fromISO}T00:00:00Z`) - days * 86_400_000;
+  return new Date(ms).toISOString().slice(0, 10);
 }
 
-// ---------------------------------------------------------------------------
-// Historical Bandas (proyección determinística)
-// ---------------------------------------------------------------------------
+/**
+ * Descarga una serie diaria de la API de Estadísticas Monetarias v4.0 del BCRA
+ * entre `desde` y `hasta` (inclusive).
+ *
+ * @returns Puntos válidos ordenados ascendente por fecha, o `[]` si falla.
+ */
+async function fetchBcraSeries(
+  id: number,
+  desde: string,
+  hasta: string,
+  revalidate: number
+): Promise<BcraSeriesPoint[]> {
+  try {
+    const url = `${BCRA_BASE}/estadisticas/v4.0/monetarias/${id}?desde=${desde}&hasta=${hasta}&limit=1000`;
+    const res = await fetch(url, { next: { revalidate } });
+
+    if (!res.ok) {
+      console.error(`[fetchBcraSeries] HTTP ${res.status} (serie ${id})`);
+      return [];
+    }
+
+    const body: unknown = await res.json();
+    if (!isRecord(body) || body.status !== 200 || !Array.isArray(body.results)) return [];
+
+    const first: unknown = body.results[0];
+    const detalle = isRecord(first) ? first.detalle : undefined;
+    if (!Array.isArray(detalle)) return [];
+
+    const points: BcraSeriesPoint[] = [];
+    for (const item of detalle) {
+      if (isRecord(item) && typeof item.fecha === "string" && isFiniteNumber(item.valor) && item.valor > 0) {
+        points.push({ fecha: item.fecha, valor: item.valor });
+      }
+    }
+
+    // La API devuelve descendente (más reciente primero).
+    return points.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  } catch (error) {
+    console.error(`[fetchBcraSeries] Error de red (serie ${id}):`, error);
+    return [];
+  }
+}
+
+/** Indexa una serie por fecha. */
+function toDateMap(points: BcraSeriesPoint[]): Map<string, number> {
+  return new Map(points.map((p) => [p.fecha, p.valor]));
+}
+
+/** Banda proyectada a hoy desde el ancla local (respaldo si el BCRA no responde). */
+function projectedBandas(): BandaCambiaria {
+  const hoy = todayBuenosAiresISO();
+  const { piso, techo } = computeBandasAt(hoy);
+  return { piso, techo, fecha: hoy, fuente: "proyeccion" };
+}
 
 /**
- * Genera un dataset histórico determinístico de 6 meses para las bandas.
+ * Devuelve el piso y el techo vigentes de la banda cambiaria USD/ARS.
  *
- * No hay un endpoint público robusto para el histórico de la banda, así que lo
- * proyectamos con la misma fórmula que la tarjeta (`computeBandasAt`), de modo
- * que el último punto del gráfico coincide siempre con el indicador. La línea
- * "oficial" se ubica de forma determinística al 15% del ancho de la banda desde
- * el piso, para que las respuestas cacheadas por ISR sean reproducibles.
- *
- * @returns Array de entradas históricas, ordenadas ascendente por fecha.
+ * Fuente primaria: series oficiales del BCRA (límite inferior 1187 y superior
+ * 1188). Desde 2026 las bandas se ajustan por el IPC mensual (t-2), así que no
+ * se pueden calcular con una fórmula fija; si la API falla se usa la
+ * proyección desde el ancla `BANDAS`, marcada con `fuente: "proyeccion"`.
  */
-export async function fetchBandasHistory(): Promise<BandaHistoryEntry[]> {
-  const history: BandaHistoryEntry[] = [];
-  const DAYS = 180; // 6 meses
+export async function fetchBandas(): Promise<BandaCambiaria> {
+  const hasta = todayBuenosAiresISO();
+  const desde = isoDaysAgo(hasta, 14); // margen por fines de semana y feriados
 
-  // Fecha actual en Buenos Aires, para que la entrada "hoy" coincida con el día argentino.
-  const todayISO = todayBuenosAiresISO();
-  const todayMs = Date.parse(`${todayISO}T00:00:00Z`);
+  const [pisos, techos] = await Promise.all([
+    fetchBcraSeries(BCRA_SERIES.bandaPiso, desde, hasta, REVALIDATE_BANDAS),
+    fetchBcraSeries(BCRA_SERIES.bandaTecho, desde, hasta, REVALIDATE_BANDAS),
+  ]);
 
-  // Generamos hacia atrás, proyectando cada día con la misma fórmula del ancla.
-  for (let i = 0; i < DAYS; i++) {
-    const fecha = new Date(todayMs - i * 86_400_000).toISOString().split("T")[0];
-    const { piso, techo } = computeBandasAt(fecha);
+  const techoByDate = toDateMap(techos);
 
-    // La oficial se ubica determinísticamente al 15% desde el piso.
-    const oficial = piso + (techo - piso) * 0.15;
-
-    history.unshift({
-      fecha,
-      piso,
-      techo,
-      oficial: Number(oficial.toFixed(2)),
-    });
+  // Última fecha presente en ambas series.
+  for (let i = pisos.length - 1; i >= 0; i--) {
+    const { fecha, valor: piso } = pisos[i];
+    const techo = techoByDate.get(fecha);
+    if (techo !== undefined && piso < techo) {
+      return { piso, techo, fecha, fuente: "bcra" };
+    }
   }
 
+  console.error("[fetchBandas] Series del BCRA no disponibles; usando proyección de respaldo");
+  return projectedBandas();
+}
+
+/**
+ * Histórico de 6 meses de la banda cambiaria con el tipo de cambio mayorista
+ * de referencia (Com. A 3500), todo desde las series oficiales del BCRA.
+ *
+ * Si las series de la banda no están disponibles, se proyecta desde el ancla
+ * local y se omite la línea del mayorista (no se inventa un valor).
+ *
+ * @returns Entradas ordenadas ascendente por fecha.
+ */
+export async function fetchBandasHistory(): Promise<BandaHistoryEntry[]> {
+  const hasta = todayBuenosAiresISO();
+  const desde = isoDaysAgo(hasta, BANDAS_HISTORY_DAYS);
+
+  const [pisos, techos, mayorista] = await Promise.all([
+    fetchBcraSeries(BCRA_SERIES.bandaPiso, desde, hasta, REVALIDATE_BANDAS),
+    fetchBcraSeries(BCRA_SERIES.bandaTecho, desde, hasta, REVALIDATE_BANDAS),
+    fetchBcraSeries(BCRA_SERIES.mayorista, desde, hasta, REVALIDATE_BANDAS),
+  ]);
+
+  const techoByDate = toDateMap(techos);
+  const mayoristaByDate = toDateMap(mayorista);
+
+  const history: BandaHistoryEntry[] = [];
+  for (const { fecha, valor: piso } of pisos) {
+    const techo = techoByDate.get(fecha);
+    if (techo === undefined || piso >= techo) continue;
+    const oficial = mayoristaByDate.get(fecha);
+    history.push(oficial === undefined ? { fecha, piso, techo } : { fecha, piso, techo, oficial });
+  }
+
+  if (history.length > 0) return history;
+
+  // Respaldo: proyección diaria desde el ancla, sin línea de cotización.
+  for (let i = BANDAS_HISTORY_DAYS - 1; i >= 0; i--) {
+    const fecha = isoDaysAgo(hasta, i);
+    history.push({ fecha, ...computeBandasAt(fecha) });
+  }
   return history;
 }
 
@@ -339,37 +408,29 @@ export async function fetchReservas(): Promise<ReservasBCRA | null> {
 
     const body: unknown = await res.json();
 
-    if (
-      body === null ||
-      typeof body !== "object" ||
-      !("status" in body) ||
-      !("results" in body)
-    ) {
+    if (!isRecord(body)) {
       console.error("[fetchReservas] Formato inesperado:", body);
       return null;
     }
 
-    const { status, results } = body as { status: number; results: unknown };
+    const { status, results } = body;
 
     if (status !== 200 || !Array.isArray(results) || results.length === 0) {
       console.error("[fetchReservas] status o results inválidos:", status);
       return null;
     }
 
-    const first = results[0] as Record<string, unknown>;
-    const detalle = first?.detalle;
+    const first: unknown = results[0];
+    const detalle = isRecord(first) ? first.detalle : undefined;
 
     if (!Array.isArray(detalle) || detalle.length === 0) {
       console.error("[fetchReservas] detalle vacío o no es array");
       return null;
     }
 
-    const latest = detalle[0] as { fecha?: unknown; valor?: unknown };
+    const latest: unknown = detalle[0];
 
-    if (
-      typeof latest.fecha !== "string" ||
-      typeof latest.valor !== "number"
-    ) {
+    if (!isRecord(latest) || typeof latest.fecha !== "string" || !isFiniteNumber(latest.valor)) {
       console.error("[fetchReservas] entrada inválida:", latest);
       return null;
     }
@@ -377,8 +438,8 @@ export async function fetchReservas(): Promise<ReservasBCRA | null> {
     // Variación diaria % contra el día anterior
     let variacion: number | null = null;
     if (detalle.length >= 2) {
-      const prev = detalle[1] as { valor?: unknown };
-      if (typeof prev.valor === "number" && prev.valor !== 0) {
+      const prev: unknown = detalle[1];
+      if (isRecord(prev) && isFiniteNumber(prev.valor) && prev.valor !== 0) {
         variacion = ((latest.valor - prev.valor) / prev.valor) * 100;
       }
     }
@@ -411,24 +472,19 @@ export async function fetchReservasHistory(): Promise<ReservasHistoryEntry[]> {
 
     const body: unknown = await res.json();
 
-    if (
-      body === null ||
-      typeof body !== "object" ||
-      !("status" in body) ||
-      !("results" in body)
-    ) {
+    if (!isRecord(body)) {
       console.error("[fetchReservasHistory] Formato inesperado:", body);
       return [];
     }
 
-    const { status, results } = body as { status: number; results: unknown };
+    const { status, results } = body;
 
     if (status !== 200 || !Array.isArray(results) || results.length === 0) {
       return [];
     }
 
-    const first = results[0] as Record<string, unknown>;
-    const detalle = first?.detalle;
+    const first: unknown = results[0];
+    const detalle = isRecord(first) ? first.detalle : undefined;
 
     if (!Array.isArray(detalle) || detalle.length === 0) return [];
 
@@ -436,8 +492,8 @@ export async function fetchReservasHistory(): Promise<ReservasHistoryEntry[]> {
     const entries: ReservasHistoryEntry[] = [];
 
     for (let i = detalle.length - 1; i >= 0; i--) {
-      const item = detalle[i] as { fecha?: unknown; valor?: unknown };
-      if (typeof item.fecha === "string" && typeof item.valor === "number") {
+      const item: unknown = detalle[i];
+      if (isRecord(item) && typeof item.fecha === "string" && isFiniteNumber(item.valor)) {
         entries.push({ fecha: item.fecha, valor: item.valor });
       }
     }

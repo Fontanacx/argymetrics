@@ -5,25 +5,7 @@ import {
   COMPARAPIX_BASE,
   REVALIDATE_BRL_WALLETS,
 } from "@/lib/constants";
-
-interface ComparaPixQuote {
-  symbol?: unknown;
-  buy?: unknown;
-  sell?: unknown;
-}
-
-interface ComparaPixProvider {
-  quotes?: unknown;
-  logo?: unknown;
-  url?: unknown;
-  hasFees?: unknown;
-  updatedAt?: unknown;
-  stale?: unknown;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
+import { isRecord } from "./guards";
 
 /**
  * Fetches BRL/ARS quotes from ComparaPix, the public PIX rate aggregator.
@@ -60,12 +42,13 @@ export async function fetchBrlWalletRates(): Promise<BrlWalletRate[]> {
       const rawProvider = data[id];
       if (!isRecord(rawProvider)) continue;
 
-      const provider = rawProvider as ComparaPixProvider;
+      const provider = rawProvider;
       if (provider.stale === true) continue;
       if (!Array.isArray(provider.quotes)) continue;
 
-      const quote = (provider.quotes as ComparaPixQuote[]).find(
-        (item) => item.symbol === "BRLARS"
+      const quotes: unknown[] = provider.quotes;
+      const quote = quotes.find(
+        (item): item is Record<string, unknown> => isRecord(item) && item.symbol === "BRLARS"
       );
       if (!quote || typeof quote.buy !== "number" || quote.buy <= 0) continue;
 

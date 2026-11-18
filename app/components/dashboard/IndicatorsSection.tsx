@@ -1,10 +1,10 @@
 import { Activity } from "lucide-react";
-import { fetchAllDollars } from "@/lib/api/dollars";
+import { fetchAllDollars, fetchDollar } from "@/lib/api/dollars";
 import {
   fetchRiesgoPais,
   fetchInflacion,
   fetchInflacionHistory,
-  getBandas,
+  fetchBandas,
   fetchBandasHistory,
   fetchReservas,
   fetchReservasHistory,
@@ -63,8 +63,9 @@ function syncRiesgoHistory(
  * and the BCRA crawling-band indicator. Self-fetches so it streams
  * independently of the rest of the dashboard.
  *
- * `fetchAllDollars` is used to position the official rate inside the band;
- * it is normally a data-cache hit from TickerSection's identical request.
+ * The band applies to the wholesale rate (Com. A 3500), so the mayorista quote
+ * is what gets positioned inside it. `fetchAllDollars` is normally a data-cache
+ * hit from TickerSection's identical request and feeds the update timestamp.
  */
 export default async function IndicatorsSection() {
   const [
@@ -76,10 +77,12 @@ export default async function IndicatorsSection() {
     goldHistory,
     brentHistory,
     gasHistory,
+    bandas,
     bandasHistory,
     reservas,
     reservasHistory,
     allRates,
+    mayorista,
   ] = await Promise.all([
     fetchRiesgoPais(),
     fetchInflacion(),
@@ -89,15 +92,15 @@ export default async function IndicatorsSection() {
     fetchCommodityHistory("GC=F"), // Oro
     fetchCommodityHistory("BZ=F"), // Petróleo
     fetchCommodityHistory("NG=F"), // Gas
+    fetchBandas(),
     fetchBandasHistory(),
     fetchReservas(),
     fetchReservasHistory(),
     fetchAllDollars(),
+    fetchDollar("mayorista"),
   ]);
 
-  const bandas = getBandas();
-  const oficialRate = allRates.find((r) => r.casa === "oficial");
-  const cotizacionActual = oficialRate?.venta;
+  const cotizacionActual = mayorista && mayorista.venta > 0 ? mayorista.venta : undefined;
   const latestUpdate = getLatestUpdateTimestamp(allRates);
 
   return (

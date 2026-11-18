@@ -14,11 +14,10 @@ async function fetchYahooCrypto(symbol: string): Promise<CryptoRate | null> {
   const data = await fetchYahooChart(symbol, "2d", REVALIDATE_CRYPTO);
   if (!data) return null;
 
-  const meta = data?.chart?.result?.[0]?.meta;
-  const prevClose = meta?.previousClose ?? meta?.chartPreviousClose;
+  const meta = data.meta;
+  const prevClose = meta.previousClose ?? meta.chartPreviousClose;
 
   if (
-    !meta ||
     typeof meta.regularMarketPrice !== "number" ||
     typeof prevClose !== "number"
   ) {
@@ -59,14 +58,12 @@ export async function fetchCryptoHistory(
   const data = await fetchYahooChart(symbol, "1y", REVALIDATE_HISTORICAL);
   if (!data) return [];
 
-  const result = data?.chart?.result?.[0];
-
-  if (!result || !result.timestamp || !result.indicators?.quote?.[0]?.close) {
+  if (data.timestamp.length === 0 || data.close.length === 0) {
     console.error(
       `[fetchCryptoHistory] Invalid historical data payload for ${symbol}`
     );
     return [];
   }
 
-  return parseYahooHistory(result.timestamp, result.indicators.quote[0].close);
+  return parseYahooHistory(data.timestamp, data.close);
 }

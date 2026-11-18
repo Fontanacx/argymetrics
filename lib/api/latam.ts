@@ -1,5 +1,6 @@
 import { DOLARAPI_BASE, REVALIDATE_DOLLARS } from "@/lib/constants";
 import type { LatamCurrencyRate } from "@/lib/types";
+import { isRecord, parseRegionalQuote, parseRegionalQuotes, readFiniteNumber } from "./guards";
 
 // ---------------------------------------------------------------------------
 // DolarAPI regional endpoints for cross-rates
@@ -8,15 +9,6 @@ const MX_API = "https://mx.dolarapi.com/v1/cotizaciones";
 const CO_API = "https://co.dolarapi.com/v1/cotizaciones";
 const CL_API = "https://cl.dolarapi.com/v1/cotizaciones";
 const ER_API = "https://open.er-api.com/v6/latest/USD"; // Fallback for PYG/UYU
-
-interface RegionalCotizacion {
-  moneda: string;
-  casa?: string;
-  nombre: string;
-  compra: number;
-  venta: number;
-  fechaActualizacion: string;
-}
 
 /**
  * Fetches ARS → LATAM currency rates (MXN, COP, UYU, PEN, CLP, PYG).
@@ -46,7 +38,12 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
       return [];
     }
 
-    const arsCcl: RegionalCotizacion = await arsCclRes.json();
+    const arsCclRaw: unknown = await arsCclRes.json();
+    const arsCcl = parseRegionalQuote(arsCclRaw);
+    if (!arsCcl) {
+      console.error("[fetchLatamCurrencies] CCL rate has an unexpected shape. Cannot compute cross-rates.");
+      return [];
+    }
     const now = new Date().toISOString();
     const currencies: LatamCurrencyRate[] = [];
 
@@ -57,9 +54,10 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
     // 1. UYU + 6. PYG — via ExchangeRate-API (independent failure)
     if (erRes.ok) {
       try {
-        const erData: { rates: Record<string, number> } = await erRes.json();
+        const erData: unknown = await erRes.json();
+        const erRates = isRecord(erData) && isRecord(erData.rates) ? erData.rates : {};
 
-        const uyuPerUsd = erData.rates?.["UYU"];
+        const uyuPerUsd = readFiniteNumber(erRates, "UYU");
         if (uyuPerUsd) {
           currencies.push({
             moneda: "UYU",
@@ -70,7 +68,7 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
           });
         }
 
-        const pygPerUsd = erData.rates?.["PYG"];
+        const pygPerUsd = readFiniteNumber(erRates, "PYG");
         if (pygPerUsd) {
           currencies.push({
             moneda: "PYG",
@@ -92,7 +90,7 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
     // 2. MXN — via MX DolarAPI (independent failure)
     if (mxRes.ok) {
       try {
-        const mxQuotes: RegionalCotizacion[] = await mxRes.json();
+        const mxQuotes = parseRegionalQuotes(await mxRes.json());
         const mxnUsd = mxQuotes.find((q) => q.moneda === "USD");
         if (mxnUsd) {
           currencies.push({
@@ -115,7 +113,7 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
     // 3. COP + 4. PEN — via CO DolarAPI (independent failure, same source)
     if (coRes.ok) {
       try {
-        const coQuotes: RegionalCotizacion[] = await coRes.json();
+        const coQuotes = parseRegionalQuotes(await coRes.json());
         const arsCop = coQuotes.find((q) => q.moneda === "ARS");
 
         if (arsCop) {
@@ -153,7 +151,7 @@ export async function fetchLatamCurrencies(): Promise<LatamCurrencyRate[]> {
     // 5. CLP — via CL DolarAPI (independent failure)
     if (clRes.ok) {
       try {
-        const clQuotes: RegionalCotizacion[] = await clRes.json();
+        const clQuotes = parseRegionalQuotes(await clRes.json());
         const arsClp = clQuotes.find((q) => q.moneda === "ARS");
         if (arsClp) {
           // 1 ARS = arsClp.compra CLP → 1 CLP = 1 / arsClp.compra ARS

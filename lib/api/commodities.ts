@@ -12,10 +12,10 @@ async function fetchYahooQuote(symbol: string, name: string): Promise<CommodityQ
   const data = await fetchYahooChart(symbol, "2d", 300);
   if (!data) return null;
 
-  const meta = data?.chart?.result?.[0]?.meta;
-  const prevClose = meta?.previousClose ?? meta?.chartPreviousClose;
+  const meta = data.meta;
+  const prevClose = meta.previousClose ?? meta.chartPreviousClose;
 
-  if (!meta || typeof meta.regularMarketPrice !== "number" || typeof prevClose !== "number") {
+  if (typeof meta.regularMarketPrice !== "number" || typeof prevClose !== "number") {
     console.error(`[fetchYahooQuote] Invalid meta for ${symbol}`);
     return null;
   }
@@ -59,11 +59,10 @@ export async function fetchCommodityHistory(symbol: string): Promise<{ fecha: st
   const data = await fetchYahooChart(symbol, "1y", 3600);
   if (!data) return [];
 
-  const result = data?.chart?.result?.[0];
-  if (!result || !result.timestamp || !result.indicators?.quote?.[0]?.close) {
+  if (data.timestamp.length === 0 || data.close.length === 0) {
     console.error(`[fetchCommodityHistory] Invalid historical data payload for ${symbol}`);
     return [];
   }
 
-  return parseYahooHistory(result.timestamp, result.indicators.quote[0].close);
+  return parseYahooHistory(data.timestamp, data.close);
 }

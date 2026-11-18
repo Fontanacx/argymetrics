@@ -3,12 +3,13 @@ import type { BandaCambiaria, BandaHistoryEntry } from "@/lib/types";
 import { formatARS } from "@/lib/formatters/currency";
 import { formatDateOnly } from "@/lib/formatters/date";
 import { INDICATOR_DEFINITIONS } from "@/lib/constants/definitions";
+import { BANDAS } from "@/lib/constants/bandas";
 import { InfoButton } from "@/app/components/modals";
 import { IndicatorDetail } from "@/app/components/modals";
 
 interface BandasIndicatorProps {
   bandas: BandaCambiaria;
-  /** Current official dollar sell rate, used to show position within bands */
+  /** Current wholesale (mayorista) rate, used to show position within bands */
   cotizacionActual?: number;
   history?: BandaHistoryEntry[];
   updateTime?: string;
@@ -19,7 +20,7 @@ interface BandasIndicatorProps {
  * visual marker showing where the current exchange rate sits.
  */
 export default function BandasIndicator({ bandas, cotizacionActual, history, updateTime }: BandasIndicatorProps) {
-  const { piso, techo, fecha } = bandas;
+  const { piso, techo, fecha, fuente } = bandas;
   const range = techo - piso;
 
   // Position of current rate as a percentage within the band (0% = floor, 100% = ceiling)
@@ -102,20 +103,24 @@ export default function BandasIndicator({ bandas, cotizacionActual, history, upd
           )}
         </div>
 
-        {/* Current rate label */}
+        {/* Current rate label: the band applies to the wholesale rate */}
         {cotizacionActual !== undefined && (
           <p className="mt-2 text-center text-xs" style={{ color: "var(--text-muted)" }}>
-            Cotizacion actual: {formatARS(cotizacionActual)}
+            Mayorista: {formatARS(cotizacionActual)}
           </p>
         )}
 
-        {/* Last updated */}
+        {/* Last updated + source */}
         <div
           className="mt-2 flex items-center justify-center gap-1 text-xs"
           style={{ color: "var(--text-muted)" }}
         >
           <Clock size={10} />
-          <span>Actualizado {formatDateOnly(fecha)}</span>
+          <span>
+            {fuente === "bcra"
+              ? `BCRA · ${formatDateOnly(fecha)}`
+              : `Estimado · ancla ${formatDateOnly(BANDAS.fechaActualizacion)}`}
+          </span>
         </div>
       </div>
     </div>

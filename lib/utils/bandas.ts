@@ -1,17 +1,16 @@
 import { BANDAS } from "@/lib/constants";
 
 const MS_PER_DAY = 86_400_000;
-const DAYS_PER_MONTH = 30; // Convención mensual del crawling band del BCRA.
+const DAYS_PER_MONTH = 30;
 
 /**
- * Proyecta el piso y el techo de la banda cambiaria para una fecha dada, a
- * partir del ancla del BCRA (`BANDAS`) y su deriva mensual.
+ * Proyecta (estimación de RESPALDO) el piso y el techo de la banda cambiaria
+ * para una fecha dada, a partir del ancla `BANDAS` y su ajuste mensual.
  *
- * El esquema es determinístico y fue anunciado por el BCRA: desde el valor
- * base, el piso baja y el techo sube `driftMensual` por mes. Para fechas
- * anteriores al ancla la banda es más angosta; para fechas posteriores, más
- * ancha. Al proyectar siempre hacia la fecha objetivo, la tarjeta del indicador
- * y el gráfico histórico usan la MISMA fórmula y nunca quedan desincronizados.
+ * Solo se usa cuando la API del BCRA no responde: los valores oficiales salen
+ * de las series 1187/1188 (ver `fetchBandas()`). El esquema vigente multiplica
+ * el techo y divide el piso por el mismo factor (IPC t-2 aplicado en forma
+ * diaria), así que la proyección hace lo mismo con `driftMensual`.
  *
  * @param dateISO Fecha objetivo en formato `YYYY-MM-DD`.
  * @returns Piso y techo proyectados, redondeados a 2 decimales. Si la fecha es
@@ -26,8 +25,9 @@ export function computeBandasAt(dateISO: string): { piso: number; techo: number 
   }
 
   const months = (targetMs - anchorMs) / MS_PER_DAY / DAYS_PER_MONTH;
-  const piso = BANDAS.piso * Math.pow(1 - BANDAS.driftMensual, months);
-  const techo = BANDAS.techo * Math.pow(1 + BANDAS.driftMensual, months);
+  const factor = Math.pow(1 + BANDAS.driftMensual, months);
+  const piso = BANDAS.piso / factor;
+  const techo = BANDAS.techo * factor;
 
   return {
     piso: Number(piso.toFixed(2)),
