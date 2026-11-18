@@ -27,7 +27,8 @@
 | Inflacion (fallback si falta el token o falla INDEC) | ArgentinaDatos | 1 h |
 | Real en billeteras (Mercado Pago, Belo, Lemon, AstroPay, etc.) | ComparaPix | 2 min |
 | Riesgo Pais | Ambito / ArgentinaDatos | 2 min |
-| Reservas BCRA | BCRA | 1 h |
+| Reservas, bandas cambiarias y mayorista | BCRA | 1 h |
+| Historial de Euro y Real | BCRA (+ ArgentinaDatos para las variantes Blue) | 1 h |
 | Criptomonedas (BTC, ETH) | Yahoo Finance | 1 min (cotizacion) / 1 h (historial) |
 | Commodities (Oro, Brent, Gas Natural) | Yahoo Finance | 5 min (cotizacion) / 1 h (historial) |
 | Acciones Argentinas (11 empresas BYMA) | Yahoo Finance | 5 min |

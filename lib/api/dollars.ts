@@ -73,40 +73,38 @@ function computeTarjetaMultiplier(dolares: DollarRate[]): number {
   return TARJETA_TAX_MULTIPLIER;
 }
 
-/**
- * EUR/USD cross implied by DolarAPI: euro oficial / dólar oficial, computed
- * separately for compra and venta. `null` when any input is missing or <= 0.
- */
-function computeEurUsd(
-  dolares: DollarRate[],
-  euro: DollarQuote | null
-): FxFactors["eurUsd"] {
-  const oficial = dolares.find((d) => d.casa === "oficial");
-  if (
-    !euro ||
-    !oficial ||
-    euro.compra <= 0 ||
-    euro.venta <= 0 ||
-    oficial.compra <= 0 ||
-    oficial.venta <= 0
-  ) {
-    return null;
-  }
-  return { compra: euro.compra / oficial.compra, venta: euro.venta / oficial.venta };
+/** Midpoint of a quote, or `null` when either side is not positive. */
+function midpoint(quote: { compra: number; venta: number }): number | null {
+  return quote.compra > 0 && quote.venta > 0 ? (quote.compra + quote.venta) / 2 : null;
 }
 
 /**
- * Fetches the live factors used to synthesise Euro/Real variants and their
- * histories. Requests share URLs and revalidation with `fetchAllDollars`, so
- * Next.js dedupes them within a render.
+ * US dollars per unit of a foreign currency (EUR, BRL), implied by DolarAPI.
+ *
+ * DolarAPI's EUR/BRL quotes are wholesale BCRA references with an almost null
+ * spread, so they are compared against the wholesale dollar (mayorista), using
+ * midpoints. Dividing compra by compra and venta by venta against the retail
+ * oficial (≈3% spread) inverted the synthetic Blue quotes (compra > venta).
+ * Falls back to the oficial midpoint when mayorista is missing.
+ */
+function computeUsdCross(dolares: DollarRate[], quote: DollarQuote | null): number | null {
+  if (!quote) return null;
+  const foreignMid = midpoint(quote);
+  const mayorista = dolares.find((d) => d.casa === "mayorista");
+  const oficial = dolares.find((d) => d.casa === "oficial");
+  const usdMid = (mayorista && midpoint(mayorista)) ?? (oficial && midpoint(oficial)) ?? null;
+  if (foreignMid === null || usdMid === null) return null;
+  return foreignMid / usdMid;
+}
+
+/**
+ * Fetches the live tarjeta multiplier used to synthesise tarjeta histories.
+ * The request shares URL and revalidation with `fetchAllDollars`, so Next.js
+ * dedupes it within a render.
  */
 export async function fetchFxFactors(): Promise<FxFactors> {
-  const [dolares, euro] = await Promise.all([fetchDolaresList(), fetchCotizacion("eur")]);
-  const list = dolares ?? [];
-  return {
-    tarjetaMultiplier: computeTarjetaMultiplier(list),
-    eurUsd: computeEurUsd(list, euro),
-  };
+  const dolares = await fetchDolaresList();
+  return { tarjetaMultiplier: computeTarjetaMultiplier(dolares ?? []) };
 }
 
 // ---------------------------------------------------------------------------
@@ -120,8 +118,8 @@ export async function fetchFxFactors(): Promise<FxFactors> {
  * any other types not shown on the dashboard. Euro and Real variants are
  * synthesised from DolarAPI's own cross quotes:
  * - Tarjeta variants use `tarjeta.venta / oficial.venta` (fallback 1.30).
- * - Euro Blue / Real Blue = (foreign oficial / dólar oficial) × dólar blue.
- *   Euro Blue is omitted when the euro quote is unavailable.
+ * - Euro Blue / Real Blue = (USD per EUR/BRL) × dólar blue compra/venta, so
+ *   they keep the blue spread. Omitted when the cross is unavailable.
  *
  * Uses Next.js `fetch` with `revalidate` for server-side ISR caching.
  * On network or HTTP errors, returns an empty array so the UI can
@@ -140,7 +138,6 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
     const rates: DollarRate[] = [...dolares];
     const tarjetaMultiplier = computeTarjetaMultiplier(dolares);
     const dolarBlue = dolares.find((d) => d.casa === "blue");
-    const dolarOficial = dolares.find((d) => d.casa === "oficial");
 
     // Euro Oficial + Euro Tarjeta
     if (euroQuote) {
@@ -154,15 +151,15 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
       });
     }
 
-    // Euro Blue = (EUR oficial / USD oficial) × USD blue, only with real euro data.
-    const eurUsd = computeEurUsd(dolares, euroQuote);
-    if (euroQuote && dolarBlue && eurUsd) {
+    // Euro Blue = (USD per EUR) × USD blue, only with real euro data.
+    const eurUsd = computeUsdCross(dolares, euroQuote);
+    if (euroQuote && dolarBlue && eurUsd !== null) {
       rates.push({
         ...euroQuote,
         casa: "euroblue",
         nombre: "Euro Blue",
-        compra: round2(eurUsd.compra * dolarBlue.compra),
-        venta: round2(eurUsd.venta * dolarBlue.venta),
+        compra: round2(eurUsd * dolarBlue.compra),
+        venta: round2(eurUsd * dolarBlue.venta),
         fechaActualizacion: dolarBlue.fechaActualizacion,
       });
     }
@@ -171,16 +168,16 @@ export async function fetchAllDollars(): Promise<DollarRate[]> {
     if (realQuote) {
       rates.push({ ...realQuote, casa: "real", nombre: "Real Oficial" });
 
-      // Real Blue via cross-rate: BRL/USD = Real_ARS / Dolar_ARS, then × Dolar Blue
-      if (dolarBlue && dolarOficial && dolarOficial.compra > 0 && dolarOficial.venta > 0) {
-        const brlUsdCompra = realQuote.compra / dolarOficial.compra;
-        const brlUsdVenta = realQuote.venta / dolarOficial.venta;
+      // Real Blue = (USD per BRL) × USD blue
+      const brlUsd = computeUsdCross(dolares, realQuote);
+      if (dolarBlue && brlUsd !== null) {
         rates.push({
           ...realQuote,
           casa: "realblue",
           nombre: "Real Blue",
-          compra: round2(brlUsdCompra * dolarBlue.compra),
-          venta: round2(brlUsdVenta * dolarBlue.venta),
+          compra: round2(brlUsd * dolarBlue.compra),
+          venta: round2(brlUsd * dolarBlue.venta),
+          fechaActualizacion: dolarBlue.fechaActualizacion,
         });
       }
 

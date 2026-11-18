@@ -1,4 +1,5 @@
 import type {
+  BcraFxPoint,
   DollarCasa,
   DollarHistoryEntry,
   DollarWithHistory,
@@ -7,186 +8,187 @@ import type {
 } from "../types";
 import {
   ARGENTINADATOS_BASE,
-  AMBITO_BASE,
+  BCRA_BASE,
   REVALIDATE_HISTORICAL,
   DISPLAYED_CASAS,
   HISTORY_DAYS,
 } from "@/lib/constants";
+import { todayBuenosAiresISO } from "@/lib/utils/bandas";
 import { fetchAllDollars, fetchFxFactors } from "./dollars";
-import { isFiniteNumber, parseDollarHistory, parseRiesgoPaisHistory } from "./guards";
+import { isFiniteNumber, isRecord, parseDollarHistory, parseRiesgoPaisHistory } from "./guards";
 
-const AMBITO_DATE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-
-// ---------------------------------------------------------------------------
-// Helper: Fetch Real (BRL) historical data from Ámbito
-// ---------------------------------------------------------------------------
-
-/**
- * Parses Ámbito chart rows (`[["fecha","Real"],["DD/MM/YYYY", value], ...]`)
- * into history entries, skipping the header row and any invalid row.
- */
-function parseAmbitoRealRows(raw: unknown): DollarHistoryEntry[] {
-  if (!Array.isArray(raw)) return [];
-
-  const entries: DollarHistoryEntry[] = [];
-  for (const row of raw.slice(1)) {
-    if (!Array.isArray(row)) continue;
-    const [fechaRaw, value]: unknown[] = row;
-    if (typeof fechaRaw !== "string" || !isFiniteNumber(value)) continue;
-
-    const match = AMBITO_DATE_RE.exec(fechaRaw);
-    if (!match) continue;
-
-    const [, day, month, year] = match;
-    entries.push({
-      fecha: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
-      compra: value,
-      venta: value,
-    });
-  }
-  return entries;
-}
-
-/**
- * Fetches Real (BRL) historical price data from Ámbito's chart API.
- *
- * We transform the rows into DollarHistoryEntry[] with the same value for
- * compra and venta (Ámbito provides only the close/venta price).
- *
- * For "realblue", we apply the current Dolar Blue / Dolar Oficial gap.
- * For "realtarjeta", we apply the live tarjeta multiplier (see `fetchFxFactors`).
- *
- * @param casa - "real", "realblue", or "realtarjeta"
- * @param maxDays - Maximum number of days to return
- */
-async function fetchRealHistory(
-  casa: DollarCasa,
-  maxDays: number
-): Promise<DollarHistoryEntry[]> {
-  try {
-    // Pick the best Ámbito period for the requested range
-    const periodo = maxDays <= 7 ? "semanal" : maxDays <= 30 ? "mensual" : "anual";
-
-    const res = await fetch(`${AMBITO_BASE}/real/grafico/${periodo}`, {
-      next: { revalidate: REVALIDATE_HISTORICAL },
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; ArgyMetrics/1.0)" },
-    });
-
-    if (!res.ok) {
-      console.error(`[fetchRealHistory] HTTP ${res.status}`);
-      return [];
-    }
-
-    const raw: unknown = await res.json();
-
-    let entries = parseAmbitoRealRows(raw);
-    if (entries.length === 0) return [];
-
-    // Sort ascending by date and slice to requested range
-    entries.sort((a, b) => a.fecha.localeCompare(b.fecha));
-    entries = entries.slice(-maxDays);
-
-    // Apply multipliers for Blue / Tarjeta
-    if (casa === "realblue") {
-      // Approximate cross-rate gap: Dolar Blue / Dolar Oficial. Uses current rates.
-      const dollars = await fetchAllDollars();
-      const dolarBlue = dollars.find((d) => d.casa === "blue");
-      const dolarOficial = dollars.find((d) => d.casa === "oficial");
-      if (dolarBlue && dolarOficial && dolarOficial.venta > 0) {
-        const gap = dolarBlue.venta / dolarOficial.venta;
-        entries = entries.map((e) => ({
-          ...e,
-          compra: Number((e.compra * gap).toFixed(2)),
-          venta: Number((e.venta * gap).toFixed(2)),
-        }));
-      }
-    } else if (casa === "realtarjeta") {
-      const { tarjetaMultiplier } = await fetchFxFactors();
-      entries = entries.map((e) => ({
-        ...e,
-        compra: Number((e.compra * tarjetaMultiplier).toFixed(2)),
-        venta: Number((e.venta * tarjetaMultiplier).toFixed(2)),
-      }));
-    }
-
-    return entries;
-  } catch (error) {
-    console.error("[fetchRealHistory] Network error", error);
-    return [];
-  }
-}
+const round2 = (value: number): number => Number(value.toFixed(2));
 
 // ---------------------------------------------------------------------------
-// Shared per-casa history fetcher (ArgentinaDatos + synthetic Euro/Real)
+// Low-level history sources
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches the last `days` history entries for a casa.
- *
- * - Real variants come from Ámbito.
- * - Dollar variants come from ArgentinaDatos.
- * - Euro variants are synthesised by scaling the dollar history with the
- *   current EUR/USD cross implied by DolarAPI (and the tarjeta multiplier for
- *   Euro Tarjeta). If the cross is unavailable, the Euro history is omitted
- *   (`[]`) rather than showing a wrong series.
+ * Full daily history of a dollar casa from ArgentinaDatos, ascending by date.
+ * Returns `[]` on HTTP/network failure or an unexpected payload.
  */
-async function fetchCasaHistory(
-  casa: DollarCasa,
-  days: number,
+async function fetchArgentinaDatosHistory(
+  endpointCasa: string,
   label: string
 ): Promise<DollarHistoryEntry[]> {
   try {
-    const isReal = casa === "real" || casa === "realblue" || casa === "realtarjeta";
-    const isEuroTarjeta = casa === "eurotarjeta";
-    const isEuro = casa === "euro" || casa === "euroblue" || isEuroTarjeta;
-
-    // ---------- Real variants: fetch from Ámbito ----------
-    if (isReal) {
-      return await fetchRealHistory(casa, days);
-    }
-
-    // ---------- Dollar / Euro variants: ArgentinaDatos ----------
-    // ArgentinaDatos lacks historical Euros. Synthesize using Dollars.
-    const endpointCasa = casa === "euroblue" ? "blue" : isEuro ? "oficial" : casa;
-
     const res = await fetch(
       `${ARGENTINADATOS_BASE}/v1/cotizaciones/dolares/${endpointCasa}`,
       { next: { revalidate: REVALIDATE_HISTORICAL } }
     );
 
     if (!res.ok) {
-      console.error(`[${label}] ${casa}: HTTP ${res.status}`);
+      console.error(`[${label}] ${endpointCasa}: HTTP ${res.status}`);
       return [];
     }
 
     const data: unknown = await res.json();
-
     if (!Array.isArray(data)) {
-      console.error(`[${label}] ${casa}: unexpected response shape`);
+      console.error(`[${label}] ${endpointCasa}: unexpected response shape`);
       return [];
     }
 
-    // API returns ascending by date — take the last N valid entries
-    const result = parseDollarHistory(data).slice(-days);
-
-    if (!isEuro) return result;
-
-    const { eurUsd, tarjetaMultiplier } = await fetchFxFactors();
-    if (!eurUsd) {
-      console.error(`[${label}] ${casa}: EUR/USD cross unavailable`);
-      return [];
-    }
-
-    const extra = isEuroTarjeta ? tarjetaMultiplier : 1;
-    return result.map((entry) => ({
-      ...entry,
-      compra: Number((entry.compra * eurUsd.compra * extra).toFixed(2)),
-      venta: Number((entry.venta * eurUsd.venta * extra).toFixed(2)),
-    }));
+    return parseDollarHistory(data);
   } catch (error) {
-    console.error(`[${label}] ${casa}: Network error`, error);
+    console.error(`[${label}] ${endpointCasa}: Network error`, error);
     return [];
   }
+}
+
+/**
+ * Daily BCRA quotes for a foreign currency
+ * (`/estadisticascambiarias/v1.0/Cotizaciones/{code}`), ascending by date.
+ *
+ * Covers at least the last `days` business days. Returns `[]` on failure.
+ */
+async function fetchBcraFxHistory(
+  code: "EUR" | "BRL",
+  days: number,
+  label: string
+): Promise<BcraFxPoint[]> {
+  try {
+    const hasta = todayBuenosAiresISO();
+    // Business days → calendar days, plus a margin for holidays.
+    const calendarDays = Math.ceil((days * 7) / 5) + 20;
+    const desde = new Date(Date.parse(`${hasta}T00:00:00Z`) - calendarDays * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+
+    const res = await fetch(
+      `${BCRA_BASE}/estadisticascambiarias/v1.0/Cotizaciones/${code}?fechadesde=${desde}&fechahasta=${hasta}&limit=1000`,
+      { next: { revalidate: REVALIDATE_HISTORICAL } }
+    );
+
+    if (!res.ok) {
+      console.error(`[${label}] BCRA ${code}: HTTP ${res.status}`);
+      return [];
+    }
+
+    const body: unknown = await res.json();
+    if (!isRecord(body) || body.status !== 200 || !Array.isArray(body.results)) {
+      console.error(`[${label}] BCRA ${code}: unexpected response shape`);
+      return [];
+    }
+
+    const points: BcraFxPoint[] = [];
+    for (const day of body.results) {
+      if (!isRecord(day) || typeof day.fecha !== "string" || !Array.isArray(day.detalle)) continue;
+      const quote: unknown = day.detalle.find(
+        (d: unknown) => isRecord(d) && d.codigoMoneda === code
+      );
+      if (!isRecord(quote)) continue;
+      const { tipoCotizacion, tipoPase } = quote;
+      if (isFiniteNumber(tipoCotizacion) && tipoCotizacion > 0 && isFiniteNumber(tipoPase) && tipoPase > 0) {
+        points.push({ fecha: day.fecha, cotizacion: tipoCotizacion, pase: tipoPase });
+      }
+    }
+
+    // The API returns the most recent day first.
+    return points.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  } catch (error) {
+    console.error(`[${label}] BCRA ${code}: Network error`, error);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Euro / Real histories (BCRA official quotes)
+// ---------------------------------------------------------------------------
+
+type ForeignVariant = "oficial" | "blue" | "tarjeta";
+
+const FOREIGN_CASAS: Partial<Record<DollarCasa, { code: "EUR" | "BRL"; variant: ForeignVariant }>> = {
+  euro: { code: "EUR", variant: "oficial" },
+  euroblue: { code: "EUR", variant: "blue" },
+  eurotarjeta: { code: "EUR", variant: "tarjeta" },
+  real: { code: "BRL", variant: "oficial" },
+  realblue: { code: "BRL", variant: "blue" },
+  realtarjeta: { code: "BRL", variant: "tarjeta" },
+};
+
+/**
+ * History for the Euro / Real casas, built from the BCRA daily quotes:
+ * - oficial: `tipoCotizacion` (same reference DolarAPI serves live).
+ * - tarjeta: oficial × live tarjeta multiplier.
+ * - blue: that day's USD-per-unit cross (`tipoPase`) × that day's dólar blue
+ *   compra/venta from ArgentinaDatos, so the blue spread is preserved.
+ */
+async function fetchForeignHistory(
+  code: "EUR" | "BRL",
+  variant: ForeignVariant,
+  days: number,
+  label: string
+): Promise<DollarHistoryEntry[]> {
+  const fx = await fetchBcraFxHistory(code, days, label);
+  if (fx.length === 0) return [];
+
+  if (variant === "blue") {
+    const blue = await fetchArgentinaDatosHistory("blue", label);
+    const blueByDate = new Map(blue.map((e) => [e.fecha, e]));
+    const entries: DollarHistoryEntry[] = [];
+    for (const point of fx) {
+      const b = blueByDate.get(point.fecha);
+      if (!b) continue;
+      entries.push({
+        fecha: point.fecha,
+        compra: round2(point.pase * b.compra),
+        venta: round2(point.pase * b.venta),
+      });
+    }
+    return entries.slice(-days);
+  }
+
+  const multiplier = variant === "tarjeta" ? (await fetchFxFactors()).tarjetaMultiplier : 1;
+  return fx.slice(-days).map((point) => {
+    const value = round2(point.cotizacion * multiplier);
+    return { fecha: point.fecha, compra: value, venta: value };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Shared per-casa history fetcher
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches the last `days` history entries for a casa.
+ *
+ * - Euro / Real variants come from the BCRA official quotes (see
+ *   `fetchForeignHistory`).
+ * - Dollar variants come from ArgentinaDatos.
+ */
+async function fetchCasaHistory(
+  casa: DollarCasa,
+  days: number,
+  label: string
+): Promise<DollarHistoryEntry[]> {
+  const foreign = FOREIGN_CASAS[casa];
+  if (foreign) {
+    return fetchForeignHistory(foreign.code, foreign.variant, days, label);
+  }
+
+  // API returns ascending by date — take the last N valid entries
+  const history = await fetchArgentinaDatosHistory(casa, label);
+  return history.slice(-days);
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +274,9 @@ function computeVariationWithLive(
   history: DollarHistoryEntry[]
 ): number | null {
   if (rate.venta > 0 && history.length >= 1) {
-    const today = new Date().toISOString().slice(0, 10);
+    // Argentine calendar day: after 21:00 ART the UTC date is already tomorrow,
+    // which made the badge compare the live rate against today's own close.
+    const today = todayBuenosAiresISO();
     const lastEntry = history[history.length - 1];
     // If today's entry is already in history, compare against day before it
     const refEntry =

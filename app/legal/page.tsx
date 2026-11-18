@@ -84,7 +84,8 @@ const DATA_SOURCES = [
   {
     name: "BCRA",
     url: "https://api.bcra.gob.ar",
-    description: "Reservas Internacionales y parámetros de referencia de las bandas cambiarias.",
+    description:
+      "Reservas Internacionales, bandas cambiarias, dólar mayorista e historial oficial del Euro y el Real.",
   },
   {
     name: "INDEC",
@@ -114,7 +115,7 @@ const DATA_SOURCES = [
   {
     name: "Ámbito Financiero",
     url: "https://mercados.ambito.com",
-    description: "Riesgo País y variantes del tipo de cambio del Real Brasileño.",
+    description: "Riesgo País.",
   },
   {
     name: "ExchangeRate-API",
@@ -328,8 +329,8 @@ export default function LegalPage() {
               <ul className="list-disc pl-5 space-y-1">
                 <li>
                   <strong>Euro Blue</strong> y <strong>Real Blue</strong>: se calculan aplicando
-                  al Dólar Blue el tipo de cambio cruzado implícito en las cotizaciones oficiales
-                  (Euro o Real Oficial ÷ Dólar Oficial).
+                  a la compra y la venta del Dólar Blue el tipo de cambio cruzado (dólares por
+                  euro o por real) que surge de las cotizaciones de referencia del BCRA.
                 </li>
                 <li>
                   <strong>Euro Tarjeta</strong> y <strong>Real Tarjeta</strong>: se calculan

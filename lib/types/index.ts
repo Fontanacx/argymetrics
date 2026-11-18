@@ -47,8 +47,18 @@ export type DollarQuote = Omit<DollarRate, "casa">;
 export interface FxFactors {
   /** Tarjeta / oficial ratio (percepciones sobre el dólar oficial). */
   tarjetaMultiplier: number;
-  /** EUR/USD cross implied by DolarAPI (euro oficial / dólar oficial), or null if unavailable. */
-  eurUsd: { compra: number; venta: number } | null;
+}
+
+/**
+ * Daily BCRA quote for a foreign currency
+ * (`/estadisticascambiarias/v1.0/Cotizaciones/{code}`).
+ */
+export interface BcraFxPoint {
+  fecha: string;
+  /** Pesos per unit of the currency (`tipoCotizacion`). */
+  cotizacion: number;
+  /** US dollars per unit of the currency (`tipoPase`). */
+  pase: number;
 }
 
 // ---------------------------------------------------------------------------
