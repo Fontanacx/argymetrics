@@ -1,4 +1,4 @@
-import { BriefingInput, SemaforoItem } from "@/lib/types";
+import type { BriefingInput, SemaforoItem } from "@/lib/types";
 
 export function computeSemaforo(data: BriefingInput): SemaforoItem[] {
   const items: SemaforoItem[] = [];

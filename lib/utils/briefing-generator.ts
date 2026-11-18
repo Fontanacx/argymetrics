@@ -1,4 +1,4 @@
-import { BriefingInput } from "@/lib/types";
+import type { BriefingInput } from "@/lib/types";
 import { formatARS, formatPercent } from "@/lib/formatters/currency";
 
 export function generateBriefingText(data: BriefingInput): string {
@@ -8,7 +8,7 @@ export function generateBriefingText(data: BriefingInput): string {
   
   let s1 = "";
   if (brecha < 5) {
-    s1 = `El mercado cambiario opera tranquilo este ${dayStr}, con una brecha Blue-Oficial del ${formatPercent(brecha)}, la más baja en lo que va de la semana.`;
+    s1 = `El mercado cambiario opera tranquilo este ${dayStr}, con una brecha Blue-Oficial del ${formatPercent(brecha)}.`;
   } else if (brecha <= 15) {
     s1 = `El mercado cambiario muestra tensión moderada este ${dayStr}, con una brecha Blue-Oficial del ${formatPercent(brecha)} entre el dólar blue a ${formatARS(data.blue.value)} y el oficial a ${formatARS(data.oficial.value)}.`;
   } else {
@@ -27,18 +27,27 @@ export function generateBriefingText(data: BriefingInput): string {
   const sortedStocks = [...data.stocks].sort((a, b) => (b.variation || 0) - (a.variation || 0));
   const topGainer = sortedStocks[0];
   const topLoser = sortedStocks[sortedStocks.length - 1];
-  
+  const gainerName = topGainer?.symbol.replace(".BA", "");
+  const loserName = topLoser?.symbol.replace(".BA", "");
+  const totalStocks = data.stocks.length > 0 ? data.stocks.length : verde + rojo;
+
   let s3 = "";
   if (verde === 0 && rojo === 0) {
     s3 = `En el mercado bursátil, la jornada finaliza sin variaciones, típicamente debido a un feriado o inactividad local.`;
   } else if (verde >= 7) {
-    s3 = `En el mercado bursátil, ${verde} de 10 acciones cierran en verde, con ${topGainer?.symbol.replace(".BA", "")} liderando las subidas con un +${formatPercent(topGainer?.variation || 0)}.`;
+    const leader = topGainer
+      ? `, con ${gainerName} liderando las subidas con ${formatPercent(topGainer.variation || 0)}`
+      : "";
+    s3 = `En el mercado bursátil, ${verde} de ${totalStocks} acciones cierran en verde${leader}.`;
   } else if (verde <= 3) {
-    s3 = `En el mercado bursátil, la jornada es negativa: ${rojo} de 10 acciones operan en rojo, con ${topLoser?.symbol.replace(".BA", "")} registrando la mayor caída (${formatPercent(topLoser?.variation || 0)}).`;
+    const worst = topLoser
+      ? `, con ${loserName} registrando la mayor caída (${formatPercent(topLoser.variation || 0)})`
+      : "";
+    s3 = `En el mercado bursátil, la jornada es negativa: ${rojo} de ${totalStocks} acciones operan en rojo${worst}.`;
+  } else if (topGainer && topLoser) {
+    s3 = `En el mercado bursátil, la jornada es mixta: ${gainerName} sube ${formatPercent(topGainer.variation || 0)} mientras que ${loserName} retrocede ${formatPercent(topLoser.variation || 0)}.`;
   } else {
-    const gainerVar = topGainer?.variation || 0;
-    const gainerStr = gainerVar > 0 ? `+${formatPercent(gainerVar)}` : formatPercent(gainerVar);
-    s3 = `En el mercado bursátil, la jornada es mixta: ${topGainer?.symbol.replace(".BA", "")} sube ${gainerStr} mientras que ${topLoser?.symbol.replace(".BA", "")} retrocede ${formatPercent(topLoser?.variation || 0)}.`;
+    s3 = `En el mercado bursátil, la jornada es mixta: ${verde} acciones en verde y ${rojo} en rojo.`;
   }
 
   // 4. Wallets & Crypto Market

@@ -39,7 +39,7 @@ export function formatRelativeTime(dateStr: string): string {
   }
 
   const days = Math.floor(diffSec / 86400);
-  return `hace ${days} ${days === 1 ? "dia" : "dias"}`;
+  return `hace ${days} ${days === 1 ? "día" : "días"}`;
 }
 
 /**
@@ -59,17 +59,22 @@ export function formatDateTime(dateStr: string): string {
 }
 
 /**
- * Formats a date string as a short date (day/month).
- * Example: "16/03"
+ * Formats a date string as a short date (day/month, es-AR).
+ * Example: "16/3"
  */
 export function formatShortDate(dateStr: string): string {
-  return shortDateFormatter.format(new Date(dateStr));
+  // Date-only ("YYYY-MM-DD") se parsea como medianoche UTC, que en hora de
+  // Buenos Aires (UTC-3) cae el día anterior. Anclamos a mediodía UTC.
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+    ? new Date(`${dateStr}T12:00:00Z`)
+    : new Date(dateStr);
+  return shortDateFormatter.format(date);
 }
 
 /**
- * Formats a month-end date string as "Mes Año" in Spanish.
+ * Formats a month-end date string as "Mes de Año" in Spanish.
  * Used for inflation data where fecha represents an entire month.
- * Example: "2026-01-31" → "Enero 2026"
+ * Example: "2026-01-31" → "Enero de 2026"
  */
 export function formatMonthYear(dateStr: string): string {
   const date = new Date(dateStr + "T12:00:00");
